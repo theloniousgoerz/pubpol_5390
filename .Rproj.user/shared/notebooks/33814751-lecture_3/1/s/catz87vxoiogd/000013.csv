@@ -1,0 +1,4 @@
+"0","data_a %<>% mutate(gestation_weeks = factor(gestation_weeks)) %>% filter(!is.na(gestation_weeks)) %>% droplevels()"
+"0","data_b %<>% mutate(gestation_weeks = factor(gestation_weeks)) %>% filter(!is.na(gestation_weeks)) %>% droplevels()"
+"0","data_c %<>% mutate(gestation_weeks = factor(gestation_weeks)) %>% filter(!is.na(gestation_weeks)) %>% droplevels()"
+"0","data_d %<>% mutate(gestation_weeks = factor(gestation_weeks)) %>% filter(!is.na(gestation_weeks)) %>% droplevels()"

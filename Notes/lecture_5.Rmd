@@ -1,0 +1,32 @@
+---
+title: "Lecture 5"
+author: "Thelonious Goerz"
+date: "2025-09-09"
+output: html_document
+---
+
+**Mullinathan and Spiess**
+
+-   We can calculate a bootstrap confidence interval for OOS R-squared
+
+-   How to optimize the training and test samle size
+
+-   k = 150, N = 41k train, 10k test
+
+Ensemble methods average over the methods but require computation of results
+
+**Set of possible models**
+
+$$
+minimize \sum L(x) \ over \ function \ class f \in F, R(f) < complexity 
+$$
+
+Select an algorithm from a set of function that minimizes the loss function subject to complexity restrictions
+
+**How to enrich model complexity with different variable transformations?**
+
+-   Create richer covariates which are functions of X
+
+    -   polynomials of X
+
+    -   spline model (piecewise model

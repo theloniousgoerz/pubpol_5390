@@ -1,0 +1,7 @@
+"0","# OLS "
+"0","ols_b = lm(y_b~x_b)"
+"0","ols_c = lm(y_c~x_c)"
+"0","# RMSE OLS "
+"0","data_b$ols_y_pred = fitted(ols_b)"
+"0","data_c$ols_y_pred = fitted(ols_c)"
+"0",""

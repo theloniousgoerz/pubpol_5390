@@ -1,0 +1,78 @@
+---
+title: "Lecture 6 "
+author: "Thelonious Goerz"
+date: "2025-09-16"
+output: html_document
+---
+Contrast npmr to pmr , for simplicity, think about in the context single x.
+
+pmr; y =b0 +b1x+e
+
+all we need to know are the betas. the functional form is based on our paremeters (line).
+
+npmr: y = m(x) + e
+
+the relationship of y given X is messy, potentially not continuous, not neatly fitting in our pmr parametric form.
+
+Goal: We want an approach that estimates m, regardless of its complexity, without having to pre-specify the functional form of the relationship.
+
+Approaches to npmr. They all share this feature: we’re going to have a model and imagine it being able to be more complex or simple, the more data, the more complex the model will be. Motivations: MSE.
+
+MSE = bias^2 + variance
+
+bias how off are you sistematically
+
+variance how noisy are your estimates , which you can further decompose into:
+
+bias in reg model
+fundamental errors
+In a world where we’re precommited to a model and we keep collecting data, statistical theory (assymptotic theory) tells us our line will go to the closest it can be, and the variance will shrink to zero (1/n),
+
+suppose for a given dataset, instead of linear line, we make it more flexible (e.g, polynomial), for a given increase in flexibility holding sample size constant,
+
+Model	thought experiment	
+Ols	n -> inf	stays biased, var -> zero
+fancier ols	fixed	less bias, higher variance
+We don’t know which one is better. The great thing about non-parametric is the thought experiment: if we can’t collect more data, less bias, more variance, but if we could get more data, the bias would go down, but the variance would go down as well (prediction paradise).
+
+Local/Local polynomial/“Kernel” regression (focus for this class)
+comparing to plain vanilla OLS (lol). 3 imp differences:
+
+many guesses for yhat at difference values of x.- each from their own model. Instead of running one model.
+given X* (target value we’re estimating a model for), just use data “close to” (in the x’s) X*.
+distance: \(|x - x^{*}| < b\). B is a bandwidth, e.g., If I wnat to know gestation effect for 28 weeks, I just want to look at data within 2.5 weeks of that gestation period.
+regress y x for these local observations
+Imagine assigning a weight of 0 (out of bandwith) and 1 (within bandwidth).
+Run model on 1s
+Get yhats
+That becomes your mhat(x*)
+OLS is just a local model with infinite bandwith (every value of X counts for the beta), of course, with no regularization.
+
+How do we choose bandwidth, depends on goal/purpose.
+
+making a descriptive graph to show a relationship.
+Driven by human judgement of what tells the best story.
+Try different ones and decide what’s the most informative.
+
+Better to go a bit undersmoothed (your reader can smooth it more), than oversmooth (you can’t undo it)
+
+Minimize RMSE (get best yhats)
+Stylized model, where the Xs and errors are normally distributed… these are the defaults of the statistical packages.
+Data driven choice of bandwidth. Cross-validation to choose bandwidth. Partition dataset into chunks, use one to estimate function, other to see what good does it do. What bandwidth does better ? Then choose that.
+Different local reg / kernels leverage the variation within the bandwidth differently. E.g., on Stata the default is the average.
+
+Most important thing is defining the kernel. The idea of the kernel is that the 0,1, don’t have to be discrete, instead it can be a continuous variable that partitions the weight you give to each observation on the basis of how close they are to your x* of interest. The continuous form could be linear, fourth order polynomial (most common), Gaussian…
+
+The ranges get combined with the bandwidth to give an observation a given weight.
+
+Kernels are defined as density function. You’d do: for each observation, where are you in relation to my target value, normalize the distance for the bandwith K((xi-x*)/b), where K = 1 or zero depending on the condition.
+
+E.G., rectangular kernel:
+
+\[ K_{rectangular} (z) = 1(|z| < \frac{1}{2}); K_{rectangular} (z) = 0 \text{otherwise} \]
+
+Folk wisdom, bandwidth is very important, choice of kernel not so much.
+
+Sieve regression
+
+Nearest neighbors

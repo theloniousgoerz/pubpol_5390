@@ -1,0 +1,83 @@
+---
+title: " 5390 Lecture 2"
+author: "Thelonious Goerz"
+date: "2025-08-28"
+output: html_document
+---
+
+**Goals of data analysis**
+
+-   Why predict $\hat{y}$ ?
+
+    -   predict to get potential players or make decisions
+
+    -   policy question
+
+    -   forecasting
+
+-   Policy Prediction Problems
+
+-   Prediction problems are embedded within causal questions (e.g. selection on onbservables)
+
+-   Variation in treatment effect using machine learning tools
+
+**OLS**
+
+-   Xs are features
+
+-   Y = label
+
+-   Betas are parameters
+
+-   GOF
+
+    -   r-squared
+
+    -   RMSE
+
+    -   SER
+
+    -   MAPE
+
+-   Standard deviation of the Y is the RMSE for a model with no predictors
+
+-   
+
+# Prediction Exercise
+
+```{r}
+library(readr)
+library(tidyverse)
+library(fixest)
+data = read_csv("../Data/births_for_class.csv")
+
+
+```
+
+```{r}
+# Descriptive Context 
+data %>% 
+  summarise(N = n(), 
+            Mean = mean(birth_weight),
+            min = min(birth_weight),
+            max = max(birth_weight))
+
+data %>% 
+  group_by(gestation_weeks) %>%
+  summarise(N = n(), 
+            Mean = mean(birth_weight),
+            min = min(birth_weight),
+            max = max(birth_weight))
+```
+
+```{r}
+# model 
+
+m = lm(birth_weight~gestation_weeks*mom_race_hispanic_status + mom_educ + mom_age + in_hospital, data = data)
+
+summary(m)
+
+data$in_hospital
+
+
+```

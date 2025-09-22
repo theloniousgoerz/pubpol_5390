@@ -1,0 +1,3 @@
+"0","# LASSO RMSE "
+"0","data_b$y_pred_ls = predict(best_model, s=5, newx = x_b)  "
+"0","data_c$y_pred_ls = predict(best_model, s=5, newx = x_c)  "

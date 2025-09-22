@@ -1,0 +1,130 @@
+---
+title: "Inter-Vivos Transfers and Bequests Tables and Figures"
+date: "Draft date: `r format(Sys.time(), '%d %B %Y')`"
+output:
+  pdf_document:
+    number_sections: yes
+linestretch: 1.5
+fig_width: 5
+fig_height: 2.5
+csl: "/Users/theloniousgoerz/Academic/Professional/Resources/Citations/styles-master/american-sociological-association.csl"
+editor_options:
+  chunk_output_type: inline
+geometry: "left=1in,right=1in,top=1in,bottom=1in"
+number-sections: true
+keep_tex: true
+link-citations: yes
+linkcolor: blue
+font_size: 12pt
+header-includes: 
+  - \usepackage{framed} 
+  - \usepackage{amsmath}
+  - \usepackage{tcolorbox} 
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+  - \usepackage{multirow} 
+  - \usepackage{xcolor} 
+  - \usepackage{tabularray}
+  - \def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}} 
+  - \usepackage{setspace} 
+  - \usepackage{threeparttable}
+  - \usepackage{booktabs}
+  - \usepackage{siunitx}
+  - \usepackage{tikz}
+  - \usepackage{tabularray}
+  - \usepackage{float}
+  - \usepackage{graphicx}
+  - \usepackage{rotating}
+  - \usepackage[normalem]{ulem}
+  - \UseTblrLibrary{booktabs}
+  - \UseTblrLibrary{siunitx}
+  - \newcommand{\tinytableTabularrayUnderline}[1]{\underline{#1}}
+  - \newcommand{\tinytableTabularrayStrikeout}[1]{\sout{#1}}
+  - \NewTableCommand{\tinytableDefineColor}[3]{\definecolor{#1}{#2}{#3}}
+---
+
+```{r setup, include=TRUE, results="hide", echo = FALSE, message = F}
+
+ rm(list = objects())
+ # THIS IS THE WIDTH OF THE CODE                                                ###
+ knitr::opts_chunk$set(echo = F,
+                       resuls = T, message = F, warning = F)
+ 
+ # knitr::opts_chunk$set(fig.width = unit(16,"cm"), fig.height = unit(9,"cm"))
+ 
+```
+
+\doublespacing
+\fontsize{12}{22}
+\setstretch{2}
+\baselineskip=29pt
+
+\section{Overview}
+
+Key Punchlines:
+
+-   A one percent increase in inter vivos transfers corresponds to a 1 (.01) percentage point increase in the probability of receiving a bequest. In other words, a 10% increase in inter vivos transfers corresponds to a 10 percentage point increase in the probability of receiving a bequest.
+
+-   A one percent increase in inter vivos transfers corresponds to a .03% increase in the value of a bequest. In other words a 10% increase in inter vivos transfers corresponds to a .3% increase in bequest values.
+-   Average value of bequests conditional on positive (excluding 0s): $85,138$
+-   Average value of inter-vivos transfers conditional on positive: $30,348$
+
+\section{Descriptive Statistics}
+
+\input{../Output/Tables/par_2x2.tex}
+\input{../Output/Tables/rep_table.tex}
+\input{../Output/Tables/total.tex}
+
+\section{Figures}
+
+\begin{figure}
+\centering 
+\includegraphics[width=.9\textwidth,height=.9\textheight,keepaspectratio]{../Output/Figures/model_fig_1.jpeg}
+\caption{Estimates of the Relationship Between Inter Vivos Transfers and The Probability of Receiving a Bequest}
+\end{figure}
+
+\begin{figure}
+\centering 
+\includegraphics[width=.9\textwidth,height=.9\textheight,keepaspectratio]{../Output/Figures/model_fig_2.jpeg}
+\caption{Estimates of the Relationship Between Inter Vivos Transfers and The Value of Bequests}
+\end{figure}
+
+Table 7 and Figure 3-4 describe the results from an interaction between log(inter vivos transfers) and child's education level on the value of the bequest. Only this interaction is significant, but on visual and statistical examination of the second differences of the interaction, they are not significant and confidence intervals overlap. An interaction between education and log(inter vivos transfers) on receipt of a bequest was also not significant. These results together suggest that a child's education level does not have a statistically meaningful affect on the focal relationship between inter vivos transfers and bequests. Figure 1 does suggest that the association between inter vivos transfers and bequests is stronger for the less than HS group, however these differences are not meaningfully different than the other education categories.
+
+\begin{figure}
+\centering 
+\includegraphics[width=.9\textwidth,height=.9\textheight,keepaspectratio]{../Output/Figures/c_educ_fig_receipt.jpeg}
+\caption{Estimates of the Relationship Between Inter Vivos Transfers and Bequest Receipt by Child's Education}
+\end{figure}
+
+\begin{figure}
+\centering 
+\includegraphics[width=.9\textwidth,height=.9\textheight,keepaspectratio]{../Output/Figures/c_educ_fig_value.jpeg}
+\caption{Estimates of the Relationship Between Inter Vivos Transfers and Bequest Value by Child's Education}
+\end{figure}
+
+Table 8 and Figure 5-6 present coefficients and graphical presentations of an interaction between log(Inter-Vivos Transfers) and whether the child is a homeowner. The interaction, when modeling the association with receiving a bequest is statistically significant based on an F-test between models $(p < 0.01)$ and the first and second differences of the interaction are also significant (diff $\ = 0.006$). In other words, being a homeowner matters for the relationship between inter vivos transfers and the probability a child receives a bequest, but does not affect the value of that bequest in a meaningful way.
+
+\begin{figure}
+\centering 
+\includegraphics[width=.9\textwidth,height=.9\textheight,keepaspectratio]{../Output/Figures/hown_fig_value.jpeg}
+\caption{Estimates of the Relationship Between Inter Vivos Transfers and Bequest Value by Child's Homeownership Status}
+\end{figure}
+
+\begin{figure}
+\centering 
+\includegraphics[width=.9\textwidth,height=.9\textheight,keepaspectratio]{../Output/Figures/hown_fig.jpeg}
+\caption{Estimates of the Relationship Between Inter Vivos Transfers and Bequest Receipt by Child's Homeownership Status}
+\end{figure}
+
+\pagebreak
+
+\section{Appendix}
+
+\input{../Output/Tables/rep_table_combined.tex}
+
+\input{../Output/Tables/rec_bequest_table.tex}
+\input{../Output/Tables/val_bequest_table.tex}
+\input{../Output/Tables/hown_int_table.tex}
+\input{../Output/Tables/educ_int_table.tex}

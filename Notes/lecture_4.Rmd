@@ -1,0 +1,30 @@
+---
+title: "Lecture 4"
+author: "Thelonious Goerz"
+date: "2025-09-04"
+output: html_document
+---
+
+**Recap**
+
+-   Population
+
+    -   Actual population or DGP
+
+-   We get samples from these populations
+
+-   If K is relatively small compared to N then the In and Out of Sample RMSE are likely to be close.
+
+    -   This may indicate that they are not that overfit.
+
+    -   For random sample, there is always stochasticity differences
+
+-   More parsimonious model that captures the deep structure of the population, the less overfit that it will be (usually)
+
+    -   Training model is fitting on a combination of the DGP and sample error
+
+-   The richer model with more features has a greater capacity to capture the deeg structure but also for overfitting.
+
+**Data Cleaning**
+
+-   

@@ -1,0 +1,163 @@
+---
+title: "Lecture 7"
+author: "Thelonious Goerz"
+date: "2025-09-16"
+output: html_document
+---
+
+**LASSO Regression**
+
+$$
+OLS\ idea = min_{b,a} \sum (y_i -b_i - \sum X_k , b_k)^2
+$$
+
+-   Minimizing subject to constraints
+
+-   This will always be worse than OLS in-sample
+
+$$
+Lasso = min_{b,a} \sum (y_i -b_1 - \sum_i^k X_k , b_2)^2 + \lambda \times\sum_n^k |b_3|
+$$
+
+-   The researcher sets the lambda regularizer, to penalize coefficients. Lambda = 0 = ols
+
+    -   We choose each coefficient so that the coefficients do not deviate in absolute terms
+
+        -   Lambda value is the magnitude by which we shrink them
+
+    -   Why shrink coefficients close to 0?
+
+        -   if coefficients truly are 0, then any estimated coefficients larger than - would be overfitting
+
+-   L1 penalty = absolute value, L2 = square
+
+-   Looking at how coefficients vary w/ lambda (make coefplot)
+
+    -   create coefficient plot with values of coefficients at different levels
+
+    -   We can also make this plot with the in-sample goodness of fit (and out of sample)
+
+    -   We can also look at the bias
+
+$$
+MSE = bias^2 + variance
+$$
+
+-   As we shrink parameters, we get more bias form shrinkage, but less (theoretical) overfitting.
+
+-   Because we get less overfitting the variance will go down as bias increases
+
+
+## In Class Exercise 
+
+```{r}
+rm(list = ls())
+library(readr)
+library(tidyverse)
+library(fixest)
+library(Metrics)
+library(magrittr)
+library(glmnet)
+data_a = read_csv("../Data/births_for_class_A.csv")
+data_b = read_csv("../Data/births_for_class_B.csv")
+data_c = read_csv("../Data/births_for_class_C.csv")
+data_d = read_csv("../Data/births_for_class_D.csv")
+```
+
+```{r SD BW}
+data_b %>% summarise(sd(birth_weight))
+data_c %>% summarise(sd(birth_weight))
+```
+
+
+```{r Define Predictors and Response}
+
+y_b = data_b$birth_weight
+x_b <- data.matrix(data_b[, c('gestation_weeks',
+                             "month",
+                             "dayofweek",                      
+                             "time",          
+                             "in_hospital",                      
+                             "mom_age",                          
+                             "mom_nativity",                     
+                             "mom_race_hispanic_status",        
+                             "mom_marital_status",              
+                             "mom_educ",                        
+                             "mom_height_inches",                
+                             "mom_bmi",                         
+                             "residence_status",                 
+                             "dad_age" )])
+
+y_c = data_c$birth_weight
+x_c <- data.matrix(data_c[, c('gestation_weeks',
+                             "month",
+                             "dayofweek",                      
+                             "time",          
+                             "in_hospital",                      
+                             "mom_age",                          
+                             "mom_nativity",                     
+                             "mom_race_hispanic_status",        
+                             "mom_marital_status",              
+                             "mom_educ",                        
+                             "mom_height_inches",                
+                             "mom_bmi",                         
+                             "residence_status",                 
+                             "dad_age" )])
+
+```
+
+```{r}
+# OLS 
+ols_b = lm(y_b~x_b)
+ols_c = lm(y_c~x_c)
+# RMSE OLS 
+data_b$ols_y_pred = fitted(ols_b)
+data_c$ols_y_pred = fitted(ols_c)
+
+```
+
+```{r}
+#perform k-fold cross-validation to find optimal lambda value
+#cv_model <- cv.glmnet(x_b, y, alpha = 1)
+
+#find optimal lambda value that minimizes test MSE
+#best_lambda <- cv_model$lambda.min
+#best_lambda
+
+best_model <- glmnet(x_b, y_b, alpha = 1, lambda = 100)
+coef(best_model)
+```
+
+```{r}
+# LASSO RMSE 
+data_b$y_pred_ls = predict(best_model, s=5, newx = x_b)  
+data_c$y_pred_ls = predict(best_model, s=5, newx = x_c)  
+```
+
+```{r}
+
+data_b %>% 
+  summarise(
+    niave = 1/nrow(data_b),
+    corrected = 1/(nrow(data_b) - 16),
+    RMSE_os = sqrt(sum((birth_weight - ols_y_pred)^2) * niave),
+    RMSE_is = sqrt(sum((birth_weight - ols_y_pred)^2) * corrected),
+    # LASSO
+    Lasso_RMSE_os = sqrt(sum((birth_weight -y_pred_ls)^2) * niave),
+    Lasso_RMSE_is = sqrt(sum((birth_weight -y_pred_ls)^2) * corrected)
+    )
+
+data_c %>% 
+  summarise(
+    niave = 1/nrow(data_c),
+    corrected = 1/(nrow(data_c) - 16),
+    OLS_RMSE_os = sqrt(sum((birth_weight - ols_y_pred)^2) * niave),
+    # LASSO
+    Lasso_RMSE_os = sqrt(sum((birth_weight - y_pred_ls)^2) * niave)
+    )
+
+```
+```{r}
+
+```
+

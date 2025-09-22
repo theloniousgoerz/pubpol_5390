@@ -1,0 +1,39 @@
+"0","rm(list = ls())"
+"0","library(readr)"
+"0","library(tidyverse)"
+"0","library(fixest)"
+"0","library(Metrics)"
+"0","library(magrittr)"
+"0","library(glmnet)"
+"0","data_a = read_csv(""../Data/births_for_class_A.csv"")"
+"2","[1mRows: [22m[34m1152[39m [1mColumns: [22m[34m30[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[32mdbl[39m (30): birth_weight, month, dayofweek, time, in_hospital, mom_age, mom_nativity, mom_race_hispanic_status, mom_marital_status, mom_educ, mom_height_inches, mom_bmi, r..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","data_b = read_csv(""../Data/births_for_class_B.csv"")"
+"2","[1mRows: [22m[34m385[39m [1mColumns: [22m[34m30[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[32mdbl[39m (30): birth_weight, month, dayofweek, time, in_hospital, mom_age, mom_nativity, mom_race_hispanic_status, mom_marital_status, mom_educ, mom_height_inches, mom_bmi, r..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","data_c = read_csv(""../Data/births_for_class_C.csv"")"
+"2","[1mRows: [22m[34m1196[39m [1mColumns: [22m[34m30[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[32mdbl[39m (30): birth_weight, month, dayofweek, time, in_hospital, mom_age, mom_nativity, mom_race_hispanic_status, mom_marital_status, mom_educ, mom_height_inches, mom_bmi, r..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","data_d = read_csv(""../Data/births_for_class_D.csv"")"
+"2","[1mRows: [22m[34m1147[39m [1mColumns: [22m[34m30[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[32mdbl[39m (30): birth_weight, month, dayofweek, time, in_hospital, mom_age, mom_nativity, mom_race_hispanic_status, mom_marital_status, mom_educ, mom_height_inches, mom_bmi, r..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."

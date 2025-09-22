@@ -1,0 +1,7 @@
+"0",""
+"0","data %>% "
+"0","  group_by(gestation_weeks) %>%"
+"0","  summarise(N = n(), "
+"0","            Mean = mean(birth_weight),"
+"0","            min = min(birth_weight),"
+"0","            max = max(birth_weight))"
