@@ -1,0 +1,23 @@
+"0","
+ggplot(df,aes(x = c_00,y = c_01)) + geom_line(lwd=.75) + 
+  geom_hline(yintercept = 0, linetype = ""dashed"") + 
+  geom_vline(xintercept = 1,lwd = .25, color = ""red"") +
+  theme_bw() + 
+  labs(x = ""00 Baseline Test Score"",
+       y = ""Treatment-Control Difference of 01 Test Score"",
+       title = "" (2001) Test Score Impacts by Baseline (2000) Test Score Control Girls"", 
+       subtitle = ""Nonparametric Fan Locally Weighted Regression"",
+       caption = ""Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with .4 bandwidth."") 
+
+ggplot(df,aes(x = t_00,y = t_01)) + geom_line(lwd=.75) + 
+  geom_hline(yintercept = 0, linetype = ""dashed"") + 
+  geom_vline(xintercept = 1,lwd = .25, color = ""red"") +
+  theme_bw() + 
+  labs(x = ""00 Baseline Test Score"",
+       y = ""Treatment-Control Difference of 01 Test Score"",
+       title = "" (2001) Test Score Impacts by Baseline (2000) Test Score Treated Girls"", 
+       subtitle = ""Nonparametric Fan Locally Weighted Regression"",
+       caption = ""Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with .4 bandwidth."") 
+"
+"0",""
+"0",""

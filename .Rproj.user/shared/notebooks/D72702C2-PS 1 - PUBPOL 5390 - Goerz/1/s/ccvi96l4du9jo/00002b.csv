@@ -1,0 +1,5 @@
+"0","source(""./113993-V1/MullainathanSpiess/predictiontools/interface_serverparallel.R"")  # Additional tools for manual parallelization
+"
+"2","Error in file(filename, ""r"", encoding = encoding) : 
+  cannot open the connection
+"

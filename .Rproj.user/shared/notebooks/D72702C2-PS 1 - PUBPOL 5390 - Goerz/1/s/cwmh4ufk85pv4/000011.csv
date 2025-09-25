@@ -1,0 +1,5 @@
+"0"," np_treat_data = kenya_data %>% 
+   filter(treat == 1)
+"
+"2","Error: object 'kenya_data' not found
+"

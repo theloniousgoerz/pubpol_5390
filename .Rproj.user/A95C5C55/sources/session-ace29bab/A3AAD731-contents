@@ -1,0 +1,602 @@
+---
+title: "PUBPOL 6090 Problem Set 2"
+author: "Thelonious Goerz"
+date: "2023-10-03"
+output: pdf_document
+---
+
+```{r, echo = F, message = F, warning = F}
+# Preliminaries 
+
+rm(list = ls())
+library(tidyverse)
+library(patchwork)
+library(modelsummary)
+library(locpol)
+library(readr)
+library(magrittr)
+library(haven)
+library(fixest)
+library(estimatr)
+library(boot)
+library(sandwich)
+library(KernSmooth)
+options(scipen = 999)
+library(glmnet)
+
+```
+
+## Problem 1
+
+## 1.1 
+
+```{r, echo = F, message = F, warning = F}
+# Read in Wash data 
+wash_data = read_dta("../Data/wash_basic.dta")
+```
+
+```{r M1, echo =F, results =T}
+# Run regression Table 2, Column 1, 105 congress
+# Prepare wash data 
+wash_data %<>% 
+  # Ensure structure is correct 
+  mutate(rgroup = as_factor(rgroup),
+         party = as.factor(party),
+         region = as_factor(region)
+         )
+wash_105 = wash_data %>% 
+  filter(congress == 105)
+
+t2_c1 = lm(nowtot~ngirls + female + white + party + 
+                srvlng + I(srvlng^2) + age + I(age^2) + norelig + 
+                catholic + othchrst + otherreligion + 
+                demvote + factor(totchi) + factor(region), data = wash_105)
+
+msummary(t2_c1,
+         coef_map = c(
+           ngirls =  "Girls",
+             female = "Female",
+             white = "White", 
+             party2 = "Republican",
+             srvlng = "Service Length",
+             `I(srvlng^2)` = "Service Length Squared",
+             age = "Age",
+             `I(age^2)` = "Age Squared",
+             norelig = "No Religion",
+           catholic = "Catholic",
+           othchrst = "Other Christian Religion",
+           otherreligion = "Other Religion",
+             demvote = "Democratic Vote Share"
+         ), stars = T,
+         fmt = 2,
+         gof_map = c("nobs","r.squared"),
+         title = "Replication of Table 2, Column 1 Result From Washington (2008)",
+         notes = "All Models include Child Count and Region Fixed Effects.")
+```
+In Table 1, I replicate the main result from Washington (2008). Based on this model specification, the interpretation for $\beta{GIRLS}$ is that for every one more Female child that a congressperson has there is a 2.37 point increase in their NOW score (which is a score of voting on women's issues) which is statistically significant. 
+
+## 1.2 
+
+Washington's identification strategy relies on the assumption 1) that child gender at birth is randomly assigned, 2) that parents are not following a "gender-biased stopping rule for fertility" which essentially states that parents are not changing their fertility behaviors based on child gender to select the gender type or composition of their children, and 3) that conditional on the number of children, the number of female children is a random variable. Additionally, Washington makes another assumption 4) that voters are not selecting constituents based on the gender composition of their children. 
+
+To yield a causal estimate, Washington conditions on the number of children and the number of daughters and sons, to isolate the effect. Therefore estimating the relationship between number of female children and voting behavior can be interpreted as causal with the specific interpretation of the coefficient that it is the "effect of daughters relative to sons" because of the linear dependence between children which makes it impossible to discern whether voting patterns are due to more influence from daughters, less from sons, or a combination of both.
+
+## 1.3 
+
+In Table 2, I compare the results of a variety of regression models with different controls to select the most parsimonious model that still yields the true causal effect
+
+```{r, echo = F, results = T, message = F, warning = F}
+
+
+t2_s1 = lm(nowtot~ngirls + female + white + party + factor(totchi) + factor(region), data = wash_105)
+t2_s2 = lm(nowtot~ngirls + srvlng + I(srvlng^2) + age + I(age^2) + factor(totchi) + factor(region), data = wash_105)
+t2_s3 = lm(nowtot~ngirls + catholic + norelig + othchrst + otherreligion + demvote + factor(region) + factor(totchi), data = wash_105)
+t2_s4 = lm(nowtot~ngirls + party + female + catholic + age + I(age^2) +  factor(totchi) + factor(region), data = wash_105)
+t2_s5 = lm(nowtot~ngirls + srvlng + I(srvlng^2)+  factor(totchi) + factor(region), data = wash_105)
+t2_s6 = lm(nowtot~ngirls + factor(totchi), data = wash_105)
+# Look at results
+msummary(list(t2_c1,t2_s1,t2_s2,t2_s3,t2_s4,t2_s5,t2_s6),
+         coef_map = c(
+           ngirls =  "Girls",
+             female = "Female",
+             white = "White", 
+             party2 = "Republican",
+             srvlng = "Service Length",
+             `I(srvlng^2)` = "Service Length Squared",
+             age = "Age",
+             `I(age^2)` = "Age Squared",
+             norelig = "No Religion",
+           catholic = "Catholic",
+             christian = "Christian",
+           othchrst = "Other Christian Religion",
+           otherreligion = "Other Religion",
+             demvote = "Democratic Vote Share"
+         ), stars = T,
+         fmt = 2,
+         gof_map = c("nobs","r.squared"),
+         title = "Replication of Main Result From Washington (2008) With Additional Specifications",
+         notes = "All Models include Child Count and Region Fixed Effects. Model 1 is the same model as in Table 1, \n  Models 2-6 present alternative specifications with different groupings of controls based on topic.",threeparttable = T)
+
+```
+
+In Model 7, I run the base specification from equation 2 in Washington (2008) which includes only child gender and a fixed effect for the total number of children. The point estimate is much larger than the preferred result (Model 1). The effect is likely very high considering that we do not have information gender and democratic vote shares which are both shown to be very predictive of NOW score as evidenced by model 1.
+
+Based on these different specifications, I believe that Model 2 presents the best specification of the causal estimate that Washington identifies. My reasoning is that with regard to women's issues, party affiliation, gender, and race likely determine much of ideological stance toward voting. Indeed, the point estimate is very similar to Model 1 ($2.47$ compared to $2.30$). I also believe that Model 5 is a reasonable specification, because it adds important information on age and religiosity, however, the point estimate is much larger than Model 2. 
+
+Model 2 still includes fixed effects for region and total number of children which satisfies Washington's first identifying 2nd identifying assumption. As a result, I conclude that Model 2 is the most parsimonious stand in for Model 1. Assumptions 1 and 3 are evaluated in the next section. 
+
+## 1.4 
+
+Assumption 1) that child gender is randomly assigned at birth cannot be tested with these data. Assumption 2) that parents are not following a gender-biased fertility stopping rule cannot be evaluated because we do not have data on the gender of the first born child, though Washington does test this possibility in the paper. In Table 3, I estimate the association between proportion of girl children and the ultimate number of children that a congressperson has. The association is positive and significant, which suggests that the an increase in the proportion of girls corresponds to having more children. It may be the case that more female children is associated with having more children in general, which may indicate a gender preference, but it is not clear. 
+
+I test assumption 4 by relying on voter characteristics. In Table 4 I  present a regression of the relationship between the proportion of female children and various voter population characteristics. Results suggest that there is not a significant association between voter characteristics and fraction of children that are girls. Though there is a significant negative correlation between fraction graduate high school and the number of female children. 
+
+```{r, echo = F, results = T, warning = F, message=F}
+# Run a regression of total children on the number of girls. 
+rc_1 =lm(propgirls~ medinc +
+perf +
+perw + 
+perhs +
+percol +
+perur + 
+alabort +
+moreserv +
+moredef +
+morecrimesp +
+protgay, 
+data = wash_105)
+rc_2 = lm(totchi~propgirls, data = wash_105)
+rc_3 = lm(totchi~nboys, data = wash_105)
+
+msummary(list(rc_2),
+         coef_map = c(
+           propgirls = "Proportion Girls"
+         ), stars = T,
+         fmt = 2,
+         gof_map = c("nobs","r.squared"),
+         title = "Association Between Total Children and Proportion Girls",
+         notes = "",threeparttable = T)
+
+msummary(list(rc_1),
+         coef_map = c(
+           propgirls = "Proportion Girls",
+           perf = "Fraction Female" ,
+           perw = "Fraction White",
+           perhs = "Fraction Graduated HS",
+           percol = "Fraction Graduated College",
+           alabort = "Fraction Support Abortion",
+           moreserv = "Fraction Prefer Spending on Services",
+           moredef = "Fraction Prefer Spending on Defense" ,
+           morecrimesp = "Fraction Prefer Spending on Crime" ,
+           protgay = "Fraction Pro-LGBTQ"
+        
+         ), stars = T,
+         fmt = 2,
+         gof_map = c("nobs","r.squared"),
+         title = "Association Between Proportion of Girl Children and Voter Characteristics",
+         notes = "",threeparttable = T)
+
+```
+## 1.5 
+
+I think that the research design in this paper is credible and clever. I would recommend that it be published, however I would suggest additional analysis subgroup analyses by age-group and service length which may signal more conservative views over time. It may be the case that these effects are consecrated wholly for younger congresspeople. I am also interested to know whether these results are sensitive to congressperson adoption patterns. While I think this is probably a rare phenomenon, if parents can select a child to adopt, this could bias the estimates. 
+
+## 1.6 
+
+As I note in 1.4, having one more female child is associated with 1.32 more children. This may indicate that parents may continue having children if they have more girls in hopes of diversifying the gender of their children which may bias the estimates. It also seems that a large reduction in the point estimate from Model 7 to Model 1 in Table 2 is likely due to Republican voting behavior as is evidenced by Table 3 in Washington 2008. I think that it might be the case that there is only an effect on NOW score for democrats but no effect for republicans. 
+
+
+
+## Problem 2
+
+## a)
+
+In Table 5, I present OLS regressions on simulated data with classic, robust, and bootstrapped standard errors. 
+
+```{r, echo = F, results = T, warning = F}
+set.seed(1999)
+# Simulate DGP 
+x = rnorm(200,0,1)
+eps_i = rnorm(200,0,1+x^2)
+y = 2 + 1 * x + eps_i
+# Estimate classic, robust, and bootstrap estimates 
+sim_mod = lm(y~x)
+msummary(list("Classic SE" = sim_mod,
+              "Robust SE" = sim_mod,
+              "Bootstrap SE" =sim_mod),
+         vcov = c("classical","HC1","bootstrap"), R = 100, 
+         title = "Comparison Between Classic, Huber-White, and 1000 Replication Bootstrap Standard errors",
+         gof_map = c("nobs","r.squared"),
+         notes = "Bootstrap SEs use 100 replications."
+)
+
+
+```
+In table 5, I compare regression estimates of $Y$ on $X$ with three different standard errors. The naive variance estimate is much smaller than the robust and bootstrapped SEs. The robust SE is slightly larger which is to be expected and the bootstrapped SE is slightly smaller than the robust SE. Based on these results, we can conclude that the bootstrapped SE recovers the robust Huber-White estimate of the variance rather than the $i.i.d.$ estimate. 
+
+## b)
+
+```{r, echo =F}
+# Create monte carlo simulation 
+# Define function to extract statistics 
+std_err_comp <- function(formula, data, indices)
+{
+  d <- data[indices,] # allows boot to select sample
+  fit <- lm(formula, data=d)
+  return(beta = summary(fit)$coefficients[2,1])
+}
+
+```
+
+```{r, cache = T, echo = F, results = T}
+
+
+# Create bootstrap SE simulation
+df_boot = data.frame()
+# Create 
+set.seed(1999)
+for (i in 1:1000){
+# DGP
+x = rnorm(200,0,1)
+eps_i = rnorm(200,0,1+x^2)
+y = 2 + 1 * x + eps_i
+
+d = data.frame(x,y)
+mod = lm(y~x)
+mod_r  = lm_robust(y~x, se_type = "HC1")
+  b = boot(data=d, statistic=std_err_comp,
+   R=100, formula=y~x)
+    df_boot[i,"beta"] = coef(mod)[2]
+    df_boot[i,"boot_se"] = sd(b$t)
+    df_boot[i,"classic_se"] = summary(mod)$coefficients[2,2]
+    df_boot[i,"rob_se"] = sqrt(vcovHC(mod, type = "HC1")[2,2])
+  
+}
+
+```
+
+```{r, echo = F, results = T}
+# Create Table summarizing bootstrapped v other SEs
+df_boot %<>% 
+  select("Beta" = beta,
+         "Bootstrapped SE" = boot_se,
+         "Classic SE" = classic_se,
+         "Robust SE" = rob_se) 
+datasummary(All(df_boot)~ Mean + SD + Min + Max, data=df_boot,
+            title = "Comparison of Classic, Robust, and Bootstrap Estimated Standard Errors from 1000 Monte Carlo Simulations",
+            notes = "Each monte carlo sample was of size 200 and bootstrap SEs at each draw are based on 1000 resamples." , threeparttable = T)
+
+
+```
+
+In Table 6, I display monte carlo simulations of $\beta$ and estimated standard errors using the naive, robust, and bootstrapped variance estimates. As we can see, after 1000 simulations, the estimate of $\hat{\beta}$ is unbiased, with a "true" standard error of $0.34$. The naive variance estimate underestimates the true standard error by just under half the real standard error. The robust standard error, $0.32$ corrects for heteroskedasticity and recovers the desirable inference properties were there no heteroskedasticity. The bootstrapped SE approximates the robust SE and is very close to that estimate at $0.31$. 
+
+## Problem 3 
+
+```{r, echo = F, warning = F, message = F}
+# Load Kenya Data. 
+kenya_data = read_csv("../Data/kenya_clean.csv")
+
+```
+
+```{r, echo =F}
+# Filter kenya data 
+kenya_data %<>% 
+  filter(
+    test00 > -1.3 & test00 <1.6 & 
+    c1 == 1 & !is.na(test00) & !is.na(test01)) %>% 
+  mutate(treat = as_factor(treat))
+# Remove missing data and partition by treatment
+ np_treat_data = kenya_data %>% 
+   filter(treat == 1)
+ np_control_data = kenya_data %>% 
+   filter(treat == 0)
+```
+
+```{r, echo = F, results = T}
+ # Estimate separate regressions on treatment and control 
+ # With a degree of 1 for the polynomial
+ # And .5 bandwidth with the Epanechnikov kernel
+lpt <- locpoly(x =np_treat_data$test00, y = np_treat_data$test01, bandwidth = 0.4,
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(-1.3,1.6),gridsize = 500)
+lpc <- locpoly(x =np_control_data$test00, y = np_control_data$test01, bandwidth = 0.4,
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(-1.3,1.6),gridsize = 500)
+
+# Create dataset with differences between treat and control regressions
+df = data.frame(c_00 = lpc$x,
+                c_01 = lpc$y,
+                t_00 = lpt$x,
+                t_01 = lpt$y,
+  diff_00 = lpt$x -  lpc$x ,
+  diff_01 = lpt$y -  lpc$y 
+)
+# Plot results
+ggplot(df,aes(x = c_00,y = diff_01)) + geom_line(lwd=.75) + 
+  geom_hline(yintercept = 0, linetype = "dashed") + 
+  geom_vline(xintercept = 1,lwd = .25, color = "red") +
+  theme_bw() + 
+  labs(x = "00 Baseline Test Score",
+       y = "Treatment-Control Difference of 01 Test Score",
+       title = "Figure 1: Year 1 (2001) Test Score Impacts by Baseline (2000) Test Score \n Difference Between Program and Comparison Schools, Cohort 1", 
+       subtitle = "Nonparametric Fan Locally Weighted Regression",
+       caption = "Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with .4 bandwidth.") 
+
+```
+In Figure 1, I present a visualization of the treatment-control difference in test scores for Girls in the first experimental cohort. Broadly, the punchline from the plot suggests that the treatment effect was most effective for girls with lower 2000 baseline test scores. As test-scores approach 1, the treatment effect declines in intensity. 
+
+```{r, echo = F, results = T}
+# Replicate plot with different bandwidths 
+df_2 = data.frame()
+# Create a vector of bandwidths
+h = c(.1,.4,.5,.7,.9)
+
+# Run four loop of different bandwidths
+for (i in 1:5){
+  
+lpt_1 <- locpoly(x =np_treat_data$test00, y = np_treat_data$test01, bandwidth = h[i],
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(-1.3,1.6),gridsize = 500)
+lpc_1 <- locpoly(x =np_control_data$test00, y = np_control_data$test01, bandwidth = h[i],
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(-1.3,1.6),gridsize = 500)
+# Create dataset with differences between treat and control regressions
+df_3 = data.frame(c_00 = lpc_1$x,
+                  c_01 = lpc_1$y,
+                  t_00 = lpt_1$x,
+                  t_01 = lpt_1$y,
+  diff_00 = lpt_1$x -  lpc_1$x ,
+  diff_01 = lpt_1$y -  lpc_1$y ,
+  bw = h[i])
+# Append to df. 
+df_2 = rbind(df_2,df_3)
+}
+
+ggplot(df_2,aes(x = c_00,y = diff_01, color = factor(bw))) + geom_line(lwd=.75) + 
+  geom_hline(yintercept = 0, linetype = "dashed") + 
+  geom_vline(xintercept = 1,lwd = .25, color = "red") +
+  theme_bw() + 
+  labs(x = "00 Baseline Test Score",
+       y = "Treatment-Control Difference of 01 Test Score",
+       title = "Figure 2: Year 1 (2001) Test Score Impacts by Baseline (2000) Test Score \n Difference Between Program and Comparison Schools, Cohort 1", 
+       subtitle = "Nonparametric Fan Locally Weighted Regression",
+       caption = "Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with varying bandwidths.") + 
+  guides(color=guide_legend(title="Bandwidth"))
+
+```
+In Figure 2, I re-estimate results in plot one with differing bandwidths of the locally weighted regression. A bandwidth of $0.4$ is preferred, however bandwidths of $0.5$ and $0.9$ provide similar overall conclusions. A bandwidth of $0.2$ provides more specific information on the underlying variation in treatment effect but is a little less flexible. For a bandwidth of $0.2$ it appears that scores around $-1$ and scores around $1.5$ have noticeable increased 2001 test scores, which are not revealed by the smoothed $0.7$ bandwidth. The results are slightly different, though much less general. Nevertheless, I still think that the $0.4$ bandwidth characterizes the overall trend best. 
+
+## 3.b
+
+In Figure 3, I present Figure 1 with bootstrapped 95% confidence intervals of the difference between the local regressions of the treatment and control groups. 
+
+```{r, echo = F}
+set.seed(1999)
+x_range = lpt$x # Specify points 
+
+fan_reg = function(data,indices){
+  # partitioned data
+  d = kenya_data[indices,] # Allow sample
+  d_treat = d %>% filter(treat ==1)
+  d_control = d %>% filter(treat ==0)
+# Local regressions 
+  # Set gridlines to the same range and size as the fan regression without 
+  # the CI 
+lpt <- locpoly(x =d_treat$test00, y = d_treat$test01, bandwidth = 0.7,
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(-1.3,1.6),gridsize = 500)
+
+lpc <- locpoly(x = d_control$test00, y = d_control$test01, bandwidth = 0.7,
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(-1.3,1.6), gridsize = 500)
+               
+# Values to return
+diff = lpt$y-lpc$y
+return(diff)
+}
+
+# Bootstrap SEs 
+fan_reg_se = boot(data = kenya_data,
+                  statistic = fan_reg, 
+                  R = 50,
+                  parallel = "multicore")
+
+# Assign standard errors to dataframe 
+name_vec = names(fan_reg_se$t %>% data.frame())
+# Summarise SE statistic
+se_estimate = fan_reg_se$t %>% data.frame() %>% 
+  gather(variable,value) %>% group_by(variable) %>% 
+  summarise(se = sd(value))
+# Fix ordering because R is difficult. 
+se_estimate = se_estimate[match(name_vec,se_estimate$variable),]
+
+# append to df with fan regression estimates 
+df$se = se_estimate$se
+df %<>% 
+  mutate(low = diff_01 - se*1.96,
+         high = diff_01 + se*1.96)
+
+```
+
+
+```{r, echo = F, results = T, warning =F, message =F}
+# Create plot
+
+ggplot(df,aes(x = x_range ,y = diff_01)) + 
+  geom_line(lwd=.75) + 
+  geom_hline(yintercept = 0, alpha = .25) + 
+  geom_vline(xintercept = 1,lwd = .25, color = "red") +
+  theme_bw() + 
+  labs(x = "00 Baseline Test Score",
+       y = "Treatment-Control Difference of 01 Test Score",
+       title = "Figure 3: Year 1 (2001) Test Score Impacts by Baseline (2000) Test Score \n Difference Between Program and Comparison Schools, Cohort 1", 
+       subtitle = "Nonparametric Fan Locally Weighted Regression.",
+       caption = "Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with .4 bandwidth. Bootsrapped CIs based on 50 replications. \n Dashed lines represent bootstrapped 95% confidence intervals of the treatment control difference.") + 
+# Add confidence intervals
+  geom_line(data = df, aes(x_range,low),size = .6, color = "black",linetype = "dashed") + 
+  geom_line(data = df, aes(x_range,high),size = .6, color = "black",linetype = "dashed")
+
+```
+
+Figure 3 indicates that for students with a baseline test score of $-1$ to about $0.5$ their test score increase in 2001 was significantly different than $0$ because the dashed confidence bands do not cross $0$. However, for the extreme ends of the distribution, th bands do cross $0$ indicating that the effect is not statistically different. 
+
+## 3.c 
+
+Based on Figure 3, results indicate that the majority of the test score gains as a result of the treatment were for students in the middle of the distribution while high and low scorers' increases were not significantly different. Because of the insignificant difference for the high and low baseline scorers, these results indicate that there were not particularly negative externalities for low-scoring students. In other words, because high and low test-scorers both have similar treatment effects, we cannot reject the hypothesis that they are different. While the paper argues that the externalities for low test-scorers are positive based on the longitudinal data, using single cohort data leads to a different conclusion. 
+
+## Problem 4
+
+```{r, echo = F}
+pop_train = read_dta("../Data/population_train.dta")
+pop_test = read_dta("../Data/population_test.dta")
+```
+
+## 4.a 
+
+In Table 7, I present RMSE and MAPE goodness of fit statistics for in and out of sample data for a variety of models. 
+
+```{r, echo = F, warning = F, cache = T, cache.lazy = F}
+
+# Predict based on global sample average 
+library(Metrics)
+
+# Estimate Naive model 
+# Birth, death, migration as predictors 
+# Outcome is global sample average child counts 
+naive_model = lm(truth~births + deaths + annual_migrants, pop_train)
+# RMSE 
+is_rmse_naive = rmse(pop_train$truth, fitted(naive_model))
+# OOS RMSE 
+naive_predict_test = predict(naive_model, newdata = pop_test[,c("births","deaths","annual_migrants")])
+oos_rmse_naive = rmse(pop_test$truth,naive_predict_test)
+# MAPE 
+is_naive_mape = mean(abs(pop_train$truth -fitted(naive_model)))
+oos_naive_mape = mean(abs(pop_test$truth - naive_predict_test))
+
+# Global Sample Average Model 
+gsa = lm(truth~1,data = pop_train)
+gsa_predict = predict(gsa, newdata = pop_test[,"truth"])
+# RMSE 
+is_rmse_gsa = rmse(pop_train$truth, fitted(gsa))
+oos_rmse_gsa = rmse(pop_test$truth,gsa_predict)
+# MAPE 
+is_mape_gsa = mean(abs(pop_train$truth-fitted(gsa)))
+oos_mape_gsa = mean(abs(pop_test$truth - gsa_predict))
+# ---------------------------------------------------
+mape = function(x,y){
+  mean(abs(x - y))
+}
+
+# Kitchen sink model 
+ks_m = lm(truth~.,data = pop_train)
+ks_m_predict = predict(ks_m,newdata = pop_test)
+# RMSE
+is_rmse_ks_m = rmse(pop_train$truth,fitted(ks_m))
+oos_rmse_ks_m = rmse(pop_test$truth,ks_m_predict)
+# MAPE
+is_mape_ks_m = mape(pop_train$truth,fitted(ks_m))
+oos_mape_ks_m = mape(pop_test$truth,ks_m_predict)
+# ---------------------------------------------------
+# Lasso Regression 
+# Define matrix of predictors 
+lasso_pred = pop_train %>% 
+  select(-truth) %>% 
+  data.matrix()
+# Cross validate minimum lambda
+lasso_cv = cv.glmnet(y = pop_train$truth,x =lasso_pred,alpha = 1)
+# Estimate model with minimum lambda 
+lasso_model = glmnet(y = pop_train$truth, x = lasso_pred, alpha = 1, lambda = lasso_cv$lambda.min)
+# Estimate LM on lasso selected betas
+lasso_lm = lm(truth~li + deaths + af + ab + ma_af + ma_ab, data = pop_train)
+lasso_lm_pred = predict(lasso_lm, newdata = pop_test[,c("truth","li","deaths","af","ab","ma_af","ma_ab")])
+# RMSE 
+is_rmse_lasso = rmse(pop_train$truth, fitted(lasso_lm))
+oos_rmse_lasso = rmse(pop_test$truth,lasso_lm_pred)
+# MAPE
+is_mape_lasso = mape(pop_train$truth,fitted(lasso_lm))
+oos_mape_lasso = mape(pop_test$truth, lasso_lm_pred)
+# ---------------------------------------------------
+# Post-lasso model with county-age-year 
+post_lasso = lm(truth~ superfips + year + age + li + deaths + af + ab + ma_af + ma_ab, data = pop_train)
+post_lasso_pred = predict(post_lasso, newdata = pop_test[,c("truth","li","deaths","af","ab","ma_af","ma_ab","superfips",
+                                                            "age","year")])
+# RMSE 
+is_rmse_post_lasso = rmse(pop_train$truth,fitted(post_lasso))
+oos_rmse_post_lasso = rmse(pop_test$truth,post_lasso_pred)
+# MAPE 
+is_mape_post_lasso = mape(pop_train$truth, fitted(post_lasso))
+oos_mape_post_lasso = mape(pop_test$truth, post_lasso_pred)
+# ---------------------------------------------------
+# Analyst specified linear model 
+theory_lm = lm(truth~year+ age + I(age^2) + births + deaths + frac_0020 + frac_nw +
+                 # FE for state 
+               factor(superfips)
+                 , data = pop_train)
+
+theory_lm_pred = predict(theory_lm,newdata = pop_train[,c("truth","year","age","superfips","births","deaths","frac_0020","frac_nw")])
+# RMSE 
+is_rmse_theory_lm = rmse(pop_train$truth,fitted(theory_lm))
+oos_rmse_theory_lm = rmse(pop_test$truth, theory_lm_pred)
+# MAPE 
+is_mape_theory_lm = mape(pop_train$truth,fitted(theory_lm))
+oos_mape_theory_lm = mape(pop_test$truth, theory_lm_pred)
+# ---------------------------------------------------
+
+# Analyst specified linear model - FEs
+theory_lm2 = lm(truth~year+ age + I(age^2) + births + deaths + frac_0020 + frac_nw + superfips
+                 , data = pop_train)
+
+theory_lm_pred2 = predict(theory_lm2,newdata = pop_train[,c("truth","year","age","superfips","births","deaths","frac_0020","frac_nw")])
+# RMSE 
+is_rmse_theory_lm2 = rmse(pop_train$truth,fitted(theory_lm2))
+oos_rmse_theory_lm2= rmse(pop_test$truth, theory_lm_pred2)
+# MAPE 
+is_mape_theory_lm2 = mape(pop_train$truth,fitted(theory_lm2))
+oos_mape_theory_lm2 = mape(pop_test$truth, theory_lm_pred2)
+# ---------------------------------------------------
+
+```
+
+
+
+```{r, echo = F, results = T}
+
+
+# Model Table 
+
+data.frame(Model = c("Naive Model (OLS)"," Global Sample Average (Intercept)","Kitchen Sink Regression","LASSO Regression (w/ Min Lambda)"," Post-Lasso (w/ Focal Predictors)","OLS with State FEs and Nonlinear Age","OLS with Nonlinear Age"),
+           "IS RMSE" = c(is_rmse_naive,is_rmse_gsa, is_rmse_ks_m,is_rmse_lasso,is_rmse_post_lasso,is_rmse_theory_lm,is_rmse_theory_lm2),
+           
+           "OOS RMSE" = c(oos_rmse_naive,oos_rmse_gsa,oos_rmse_ks_m,oos_rmse_lasso,oos_rmse_post_lasso,oos_rmse_theory_lm,oos_rmse_theory_lm2),
+           
+           "IS MAPE" = c(is_naive_mape,is_mape_gsa,is_mape_ks_m,is_mape_lasso,is_mape_post_lasso,is_mape_theory_lm,is_mape_theory_lm2),
+           
+           "OOS MAPE" = c(oos_naive_mape,oos_mape_gsa,oos_mape_ks_m,oos_mape_lasso,oos_mape_post_lasso,oos_mape_theory_lm,oos_mape_theory_lm2),
+           
+           check.names = F) %>% 
+  datasummary_df(., notes = c("Naive Model includes births, deaths, and migration as features. Global Sample Average Model includes only an intercept. LASSO regression model estimated with optimal training data lambda determined through cross validation. IS = In Sample, OOS = Out of Sample."), threeparttable = T, title = "Comparison of Different Prediction Models for Estimating Child Population Counts",
+                 align = "lcccc")
+
+
+
+```
+
+## 4.b 
+
+Based on these sets of models, I would choose the Lasso and Post-Lasso models because of their out of sample RMSE and MAPE. The LASSO model uses only selected coefficients and the post-LASSO model uses selected coefficients in addition to age-county-year variables. Both perform well out of sample and particularly the post-LASSO model performs well with the addition of theoretically relevant variables. 
+
+## 4.c 
+
+In and out of sample RMSE and MAPE do vary by model. The Naive model, which incorporates births,deaths, and migration, is parsimonious and performs reasonably well on MAPE out of sample but do not perform well in RMSE. Across models, OOS fit is usually worse than in-sample fit, with the exception of the kitchen sink and LASSO models. The models with the lowest OOS RMSE and MAPE were more parsimonious which can reduce overfitting or adding in-sample specific noise. Additionally, the LASSO models fit with cross-validation to select lambdas may perform better because of a more principled feature selection. In models that are more complex and add in all information possible, performance may be worse. 
+
+## 4.d
+
+I think that the strength of using LASSO and other data-driven variable selection methods makes sense for modeling in settings where data are high dimensional. Additionally, when forecasting or prediction is the desired outcome, LASSO performs particularly well at maximizing OOS goodness of fit. If the goal of analysis is prediction, I think that OLS and other traditional methods provide more substantively and theoretically relevant estimates. Additionally, when conducting statistical inference, it is possible that machine learning methods may select data that predict well but are not substantively informative. Thus, the variables chosen may be nonsensical relative to the actual problem of study. That said, I believe that ML methods do add greatly to modeling and provide powerful tools to perform robustness checks and analyze model performance. 
+
