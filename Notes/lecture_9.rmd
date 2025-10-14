@@ -1,0 +1,22 @@
+---
+title: "Lecture 9"
+author: "Thelonious Goerz"
+date: "2025-09-30"
+output: html_document
+---
+
+**Cross-valdation**
+
+-   A model trained on a set of folds will be overfit, but not overfit on the remaining sample
+
+-   Cross-validated GOF for the $ith$ folds, then average all CV GOFS
+
+    -   Model is not overfit for fold 1 and testing sample
+
+    -   Folds are random samples (we hope that the train and test are too
+
+    -   hold-out fold and test are unbiased estimates of GOF
+
+    -   but they are samples so they all have noise
+
+-   Likely uses nelder mead or newton raphson algorithm to select

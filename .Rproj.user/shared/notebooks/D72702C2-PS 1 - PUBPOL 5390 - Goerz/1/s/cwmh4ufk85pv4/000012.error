@@ -1,1 +1,0 @@
-{"frames":[{"func":"kenya_data %>% filter(treat == 1)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0},{"func":"filter(., treat == 1)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error: object 'kenya_data' not found\n"}

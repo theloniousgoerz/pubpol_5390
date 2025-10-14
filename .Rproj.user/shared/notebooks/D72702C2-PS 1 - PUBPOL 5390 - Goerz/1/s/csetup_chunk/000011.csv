@@ -1,8 +1,0 @@
-"0",""
-"0"," rm(list = objects())"
-"0"," # THIS IS THE WIDTH OF THE CODE                                                ###"
-"0"," knitr::opts_chunk$set(echo = F,"
-"0","                       resuls = T, message = F, warning = F)"
-"0"," "
-"0"," # knitr::opts_chunk$set(fig.width = unit(16,""cm""), fig.height = unit(9,""cm""))"
-"0"," "

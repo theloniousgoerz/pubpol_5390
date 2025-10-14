@@ -78,21 +78,21 @@ library(boot)
 
 ### Load Data ###
  setwd("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/")
- bw_E = read_csv("./Data/births_for_ps1_E.csv")
- bw_F = read_csv("./Data/births_for_ps1_F.csv")
+ bw_E =  read_csv("./Data/births_for_ps1_E.csv")
+ bw_F =  read_csv("./Data/births_for_ps1_F.csv")
  kenya = read_dta("./Data/Kenya.dta")
- ahs = read.csv("./Data/ahs2011n.csv",quote="\"'")
+ ahs =   read.csv("./Data/ahs2011n.csv",quote="\"'")
 
-source("./113993-V1/MullainathanSpiess/predictiontools/algo_linear.R")  # OLS et al.
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/algo_linear.R")  # OLS et al.
 # Load tools
-source("./113993-V1/MullainathanSpiess/predictiontools/tool_analysis.R")  # Prediction output analysis
-source("./113993-V1/MullainathanSpiess/predictiontools/tool_dataprep.R")  # Data preparation
-source("./113993-V1/MullainathanSpiess/predictiontools/tool_prediction.R")  # Main prediction analysis routine
-source("./113993-V1/MullainathanSpiess/predictiontools/tool_predictionhelpers.R")  # Tuning and ensemble tools
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/tool_analysis.R")  # Prediction output analysis
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/tool_dataprep.R")  # Data preparation
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/tool_prediction.R")  # Main prediction analysis routine
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/tool_predictionhelpers.R")  # Tuning and ensemble tools
 
 # Load interface
-source("./113993-V1/MullainathanSpiess/predictiontools/interface_predictiveanalysis.R")  # Main interface for local analysis of ensembles
-source("./113993-V1/MullainathanSpiess/predictiontools/interface_serverparallel.R")  # Additional tools for manual parallelization
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/interface_predictiveanalysis.R")  # Main interface for local analysis of ensembles
+source("/Users/theloniousgoerz/Academic/PhD/Coursework/2025_Fall/pubpol_5390/113993-V1/MullainathanSpiess/predictiontools/interface_serverparallel.R")  # Additional tools for manual parallelization
 
 
 
@@ -555,7 +555,8 @@ df_train = BW_train %>%
 
 # Test GOF
 
-df_test = BW_test %>% 
+df_test = 
+  BW_test %>% 
  summarise(
     `Sample` = "F",
     `SD Birthweight` = sd(birth_weight),
@@ -569,7 +570,7 @@ df_test = BW_test %>%
     `R-squared Set 2` = 1- sum((birth_weight - y_hat_set2)^2) / sum((birth_weight - mean(birth_weight))^2),
     `N Features Set 3` = 164,
     `RMSE Feature Set 3` = sqrt(sum((birth_weight - y_hat_set3)^2) * 1/(nrow(BW_test))),
-    `R-squared Set 3` = 1- sum((birth_weight - y_hat_set3)^2) / sum((birth_weight - mean(birth_weight))^2)
+    `R-squared Set 3` = 1- sum((birth_weight-y_hat_set3)^2) / sum((birth_weight - mean(birth_weight))^2)
    )
 ```
 
@@ -736,7 +737,6 @@ ggplot(df,aes(x = x_range ,y = diff_01)) +
   geom_line(data = df, aes(x_range,high),size = .6, color = "black",linetype = "dashed")
 ```
 
-
 \subsection{iv-vi}
 
 ```{r Q2 Large Bandwidth}
@@ -798,7 +798,7 @@ ggplot(df,aes(x = x_range ,y = diff_01)) +
   theme_bw() + 
   labs(x = "00 Baseline Test Score",
        y = "Treatment-Control Difference of 01 Test Score",
-       title = "Figure 3a: Year 1 (2001) Test Score Impacts by Baseline (2000) (Large Bandwidth)", 
+       title = "Figure 3a: (Large Bandwidth)", 
        subtitle = "Nonparametric Fan Locally Weighted Regression.",
        caption = "Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with 1 bandwidth. Bootsrapped CIs based on 50 replications. \n Dashed lines represent bootstrapped 95% confidence intervals of the treatment control difference.") + 
 # Add confidence intervals
@@ -806,7 +806,6 @@ ggplot(df,aes(x = x_range ,y = diff_01)) +
   geom_line(data = df, aes(x_range,high),size = .6, color = "black",linetype = "dashed")
 
 ```
-
 
 ```{r Q2 Small Bandwidth}
 
@@ -867,7 +866,7 @@ ggplot(df,aes(x = x_range ,y = diff_01)) +
   theme_bw() + 
   labs(x = "00 Baseline Test Score",
        y = "Treatment-Control Difference of 01 Test Score",
-       title = "Figure 3a: Year 1 (2001) Test Score Impacts by Baseline (2000) (Small Bandwidth)", 
+       title = "Figure 3a: (Small Bandwidth)", 
        subtitle = "Nonparametric Fan Locally Weighted Regression.",
        caption = "Dashed line represents 0 standardized test score. \n Horizontal line represents minimum winning score in 2001. \n Local linear regressions use Epanechnikov kernel with .3 bandwidth. Bootsrapped CIs based on 50 replications. \n Dashed lines represent bootstrapped 95% confidence intervals of the treatment control difference.") + 
 # Add confidence intervals
@@ -877,13 +876,13 @@ ggplot(df,aes(x = x_range ,y = diff_01)) +
 ```
 
 
+Replicating Figure 3a with a larger bandwidth reveals much the same relationship as with the Kremer et al. bandwidth. There appears to be a small decrease in the treatment-control difference around the 1 baseline score in 2000, but they appear generally the same. 
 
+Replicating 3a with the smaller bandwidth changes the interpretation somewhat. With a bandwidth of .3, the line appears almost completely flat and the uncertainty around the ends of the distribution are much wider. With a smaller bandwidth, the results suggest that there is not much difference in the effect across baseline test scores. 
 
-
+Consistent with Kremer et al., I prefer the .7 bandwidth estimate. This estimate suggests that the test score treatment effects were the strongest for girls who had test scores between -1 and .8 in 2000, with those on thhe ends of the distribution having effects indistinguishable from 0.
 
 \section{Problem 3}
-
-
 
 \subsection{Data Cleaning}
 
@@ -1037,16 +1036,16 @@ miss_factor_recode = function(df) {
   return(df)
 }
 
-ahs_temp = miss_factor_recode(ahs) %>% select(!is.factor, -EXCLUS)
+ahs = miss_factor_recode(ahs) %>% select(!is.factor, -EXCLUS)
 
-ahs_temp %<>% na.omit %>% droplevels()
+ahs %<>% na.omit %>% droplevels()
 
-instruction <- list(df=ahs_temp,settings=list(LHS="LOGVALUE",
-                                         RHS=colnames(ahs_temp)))
+instruction <- list(df=ahs,settings=list(LHS="LOGVALUE",
+                                         RHS=colnames(ahs)))
 
 ```
 
-```{r Q3 Fit Models, echo = F}
+```{r Q3 Fit Models, echo = F, results = F}
 
 olsbaseline <- predictiveanalysis(df=instruction$df, LHS=instruction$settings$LHS, RHS=instruction$settings$RHS,
                                           holdoutvar="holdout", holdout=T,
@@ -1103,7 +1102,115 @@ for(method in setdiff(names(fulldata), c("LOGVALUE","holdout"))) {
 }
 
 # Display Table
+table1 %<>%
+  rename(
+    "IS RMSE" = ismse,
+    "IS R2" = isr2,
+    "IS SD(Ln(Value))" = isSD,
+    "OOS RMSE" = oosmse,
+    "OOS SD(Ln(Value))" = osSD,
+    "OOS R2" = oosr2
+  ) %>% select(method,contains("IS"),contains("OOS")) 
+
 table1 %>%
+  datasummary_df(title = "Replication of Mullinathan and Spiess Table 1",
+                 threeparttable = T, fmt = 3)
+```
+To interpret the estimate of the RMSE in comparison to the log(house price), we would say that the model improves at predicting house price by 4.2 log units compared to an estimate to using the mean value. 
+
+\subsection{d-e Kitchen Sink Regression}
+
+```{r Q3 Feature Set: Kitchen Sink Regression, results = F}
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Create Feature Set 
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Create Temp Dataset
+library(fastDummies)
+ahs_temp = ahs
+# Apply function over columns that are numeric to make factor 
+#numeric_names = ahs_temp %>% select(is.numeric ) %>% 
+#  select(-LOGVALUE) %>%
+#  names()
+#
+
+# turn LOT into 10 categories 
+ahs_temp %<>%
+  mutate(
+    LOT_pctile = cut(
+      LOT,
+      breaks = quantile(LOT, probs = seq(0, 1, 0.1), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = paste0("P", 1:10)
+    )
+  ) %>% select(-LOT)
+
+ahs_temp = dummy_cols(ahs_temp,remove_first_dummy = T,
+                    select_columns = c("DISH","BATHS","BUILT","REGION"))
+
+#ahs_temp$LOGVALUE
+instruction_ks <- list(df=ahs_temp,settings=list(LHS="LOGVALUE",
+                                         RHS=names(ahs_temp)))
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Run OLS KS
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+olsbaseline_ks <- predictiveanalysis(df=instruction_ks$df, LHS=instruction_ks$settings$LHS, RHS=instruction_ks$settings$RHS,
+                                          holdoutvar="holdout", holdout=T,
+                                          predictors=list(ols=ols()),
+                                          nfold = 8)
+
+
+```
+
+```{r Q3 Table 2}
+
+# Code adapted from Mullinathan and Spiess # 
+## Modified with ChatGPT to fix logical variable type coercian problem with data.frame
+
+fulldata_c = olsbaseline_ks$returndf[,c("LOGVALUE","holdout")]
+fulldata_c$OLS <- olsbaseline_ks$returndf$prediction
+
+# Calculate losses
+losses <- fulldata_c[,c("LOGVALUE","holdout")]
+isvar <- mean((losses$LOGVALUE[!losses$holdout] - mean(losses$LOGVALUE[!losses$holdout]))^2)
+oosvar <- mean((losses$LOGVALUE[losses$holdout] - mean(losses$LOGVALUE[losses$holdout]))^2)
+
+
+losses$holdout <- as.logical(losses$holdout)
+
+table2 <- data.frame(setup=NULL,predictor=NULL,parameters=NULL,
+                     ismse=NULL,isr2=NULL,
+                     isSD = NULL,
+                     oosmse=NULL,oosse=NULL,oosr2=NULL,
+                     osSD = NULL)
+
+for(method in setdiff(names(fulldata), c("LOGVALUE","holdout"))) {
+  
+  # Make sure numeric
+  losses[[method]] <- as.numeric(fulldata_c[[method]] - fulldata_c$LOGVALUE)^2
+  
+  # Skip if no non-NA values in holdout
+  if (all(is.na(losses[[method]][losses$holdout]))) next
+  
+  table2 <- rbind(table2, data.frame(
+    method = method,
+    ismse = sqrt(mean(losses[[method]][!losses$holdout], na.rm = TRUE)),
+    isr2 = 1 - mean(losses[[method]][!losses$holdout], na.rm = TRUE) / isvar,
+    isSD = sd(losses[[method]][!losses$holdout],na.rm = T),
+    oosmse = sqrt(mean(losses[[method]][losses$holdout], na.rm = TRUE)),
+    oosse = sd(losses[[method]][losses$holdout], na.rm = TRUE) / sqrt(sum(losses$holdout)),
+    oosr2 = 1 - mean(losses[[method]][losses$holdout], na.rm = TRUE) / oosvar,
+    osSD = sd(losses[[method]][losses$holdout],na.rm = T)
+
+  ))
+}
+
+# Display Table
+table2 %<>%
   rename(
     "IS RMSE" = ismse,
     "IS R2" = isr2,
@@ -1112,10 +1219,290 @@ table1 %>%
     "OOS SD(Ln(Value))" = osSD,
     "OOS R2" = oosr2
   ) %>% 
-  select("method",contains("In"),contains("out")) %>%
-  datasummary_df(title = "Replication of Mullinathan and Spiess Table 1",
-                 align = "lcccccc")
+  select(method,contains("IS"),contains("OOS")) 
+
+table2 %>% 
+  datasummary_df(fmt = 2,title = "Replication of Mullinathan and Spiess Table 1 (KS)")
+
+
+```
+In the updated "kitchen sink model," I exmploy an extensive set of factor variable versions and include deciles of lot size to account for non-linearities related to the size of dwellings. These transformations improve on the in and out-of-sample R2 and RMSE above what is presented in Mullinathan and Spiess. I improve the in-sample R2 by .04 and the out of sample by .03. 
+
+```{r Q3 By House Price Quantile}
+# Create summaries by quintile 
+rel_diff_ols = fulldata %>% 
+  filter(holdout) %>%
+ mutate(quintile = cut(
+      LOGVALUE,
+      breaks = quantile(LOGVALUE, probs = seq(0, 1, 0.20), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = paste0("P", 1:5)
+    )) %>% 
+  # summarise by metric 
+  group_by(quintile) %>% 
+  summarise(mu_lv_ols = mean(LOGVALUE),
+            mu_p_ols = mean((OLS)),
+            ols_diff = (mu_lv_ols - mu_p_ols)
+            )
+
+rel_diff_ols_2 = fulldata_c %>% 
+  filter(holdout) %>%
+ mutate(quintile = cut(
+      LOGVALUE,
+      breaks = quantile(LOGVALUE, probs = seq(0, 1, 0.20), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = paste0("P", 1:5)
+    )) %>% 
+  # summarise by metric 
+  group_by(quintile) %>% 
+  summarise(mu_lv_ols_2 = mean(LOGVALUE),
+            mu_p_ols_2 = mean((OLS)),
+            ols_diff_2 =(mu_lv_ols_2 - mu_p_ols_2)
+            )
+
+left_join(rel_diff_ols,rel_diff_ols_2) %>% 
+  mutate(rel_diff = (ols_diff_2 - ols_diff) / ols_diff) %>% 
+  select(quintile,rel_diff) %>% pivot_wider(names_from = "quintile",values_from = "rel_diff") %>% 
+  datasummary_df(title = "Relative Improvement in KS OLS over MS OLS")
+
+```
+Across quintiles, my OLS model improves over the MS OLS model in terms of R2, but the change is uneven across price quintiles. In all quintiles, but the 3rd my predictions become worse. However, in the 3rd quintile, the predictions improve substantially. 
+
+\subsection{f}
+
+```{r Q3 Squared Prediction Error Holdout, warning = F, fig.cap = "Fan Regression Estimates of RMSE by Y-Hat"}
+
+fulldata_h = fulldata_c[fulldata_c$holdout,] %>%
+  mutate(spe = (LOGVALUE-OLS)^2)
+# Get quantiles
+  
+local_linear_spe = locpoly(x =fulldata_h$OLS, y = fulldata_h$spe, bandwidth = .5,
+               degree = 1,
+               kernel = "Epanechnikov",
+               range.x = c(7.24,15.07),gridsize = 1000)
+
+local_linear_spe %<>% data.frame() %>% 
+  mutate(rmse = sqrt(y))
+
+# quantile(local_linear_spe$x,probs = c(.20,.40,.60,.80,1))
+
+# Visualize # 
+local_linear_spe[local_linear_spe$x > 8 & local_linear_spe$x < 14.99,] %>%
+ggplot(aes(x,rmse)) + 
+  geom_line( size = 2, color = "blue") + 
+  geom_hline(yintercept = 0.83, 
+             color = "grey50",
+             linetype = "dashed", 
+             size = 2) + 
+  theme_bw() + 
+  labs(x = "Y-Hat",
+       y = "RMSE",
+       subtitle = "Bandwidth = .5")
+
 ```
 
-\subsection{d-e Kitchen Sink Regression}
+Across the distribution of Y-hat values, we can see that the, compared to the global RMSE, the model predicts better for values of y-hat between 8-14.99. This is because most of the data exist in this space owing to the skewed distribution.
+
+\subsection{g}
+
+```{r Q3 Kernel Density of y, fig.cap = "Density of House Prices"}
+library(moments)
+ahs %<>% 
+  mutate(VALUE = exp(LOGVALUE))
+
+# Create KD Estimate of VALUE # 
+ggplot(data = ahs, aes(VALUE)) + 
+  geom_density(
+    kernel = "rectangular",
+    bw = "nrd0", 
+    size = 2
+  ) + 
+  theme_bw() + 
+  labs(x = "Value (Dollars)",
+       y = "Density",
+       subtitle = "Uniform Kernel, Silverman's Optimal Bandwidth")
+
+ahs %>% 
+  summarise(Mean = mean(VALUE),,
+            SD =   sd(VALUE),,
+            Min =  min(VALUE),,
+            Max =  max(VALUE),
+            Skewness = skewness(VALUE)) %>% 
+  datasummary_df(title = "Summary Statistics of VALUE")
+
+```
+Based on the kernel density and the summary statistics, house prices appear very skewed to the right. 
+
+\subsection{h}
+
+```{r Compare MS and KS model with Exponentiated Prediction values}
+
+MS_exp_values = fulldata[fulldata$holdout,] %>% 
+  mutate(VALUE = exp(LOGVALUE),
+         OLS = exp(OLS)) %>% 
+  summarise(
+    `Model` = "MS OLS",
+    `SD Value` = sd(VALUE),
+    `RMSE` = sqrt(sum((VALUE-OLS)^2) * 1/nrow(.)),
+    `R2` = 1- sum((VALUE-OLS)^2) / sum((VALUE - mean(VALUE))^2))
+
+KS_exp_values = fulldata_c[fulldata_c$holdout,] %>% 
+  mutate(VALUE = exp(LOGVALUE),
+         OLS = exp(OLS)) %>% 
+  summarise(
+    `Model` = "KS OLS",
+    `SD Value` = sd(VALUE),
+    `RMSE` = sqrt(sum((VALUE-OLS)^2) * 1/nrow(.)),
+    `R2` = 1- sum((VALUE-OLS)^2) / sum((VALUE - mean(VALUE))^2))
+
+rbind(MS_exp_values,KS_exp_values) %>% 
+  datasummary_df(fmt = 2,
+                 title = "Comparison of Raw House Values and Summary Statistics Across Models")
+```
+
+If we transoform log(house prices) back to their raw values, we see that the models decrease in predictive performance substantially and only offere small improvements over using the mean values. The OOS R2 is also significantly reduced (by about half the original value).
+
+
+```{r Q3 Recompute Models, results = F}
+# RM LV
+ahs %<>% select(-LOGVALUE)
+
+instruction <- list(df=ahs,settings=list(LHS="VALUE",
+                                         RHS=colnames(ahs)))
+
+olsbaseline_r <- predictiveanalysis(df=instruction$df, LHS=instruction$settings$LHS, RHS=instruction$settings$RHS,
+                                          holdoutvar="holdout", holdout=T,
+                                          predictors=list(ols=ols()),
+                                          nfold = 8)
+
+
+ahs_temp %<>% mutate(VALUE = exp(LOGVALUE)) %>% select(-LOGVALUE)
+
+instruction_ks <- list(df=ahs_temp,settings=list(LHS="VALUE",
+                                         RHS=names(ahs_temp)))
+
+olsbaseline_ks_r <- predictiveanalysis(df=instruction_ks$df, LHS=instruction_ks$settings$LHS, RHS=instruction_ks$settings$RHS,
+                                          holdoutvar="holdout", holdout=T,
+                                          predictors=list(ols=ols()),
+                                          nfold = 8)
+```
+
+```{r Q3 Recompute Table 1}
+
+
+fulldata = olsbaseline_r$returndf[,c("VALUE","holdout")]
+fulldata$OLS <- olsbaseline_r$returndf$prediction
+
+# Calculate losses
+losses <- fulldata[,c("VALUE","holdout")]
+isvar <-  mean((losses$VALUE[!losses$holdout] - mean(losses$VALUE[!losses$holdout]))^2)
+oosvar <- mean((losses$VALUE[losses$holdout] - mean(losses$VALUE[losses$holdout]))^2)
+
+losses$holdout <- as.logical(losses$holdout)
+
+table3 <- data.frame(setup=NULL,predictor=NULL,parameters=NULL,
+                     ismse=NULL,isr2=NULL,
+                     isSD = NULL,
+                     oosmse=NULL,oosse=NULL,oosr2=NULL,
+                     osSD = NULL)
+
+for(method in setdiff(names(fulldata), c("VALUE","holdout"))) {
+  
+  # Make sure numeric
+  losses[[method]] <- as.numeric(fulldata[[method]] - fulldata$VALUE)^2
+  sd_data = losses[,c("holdout","VALUE")] 
+  
+  # Skip if no non-NA values in holdout
+  if (all(is.na(losses[[method]][losses$holdout]))) next
+  
+  table3 <- rbind(table3, data.frame(
+    method = method,
+    ismse = sqrt(mean(losses[[method]][!losses$holdout], na.rm = TRUE)),
+    isr2 = 1 - mean(losses[[method]][!losses$holdout], na.rm = TRUE) / isvar,
+    isSD = sd(sqrt(losses[[method]][!losses$holdout]),na.rm = T),
+    oosmse = sqrt(mean(losses[[method]][losses$holdout], na.rm = TRUE)),
+    oosse = sd(losses[[method]][losses$holdout], na.rm = TRUE) / sqrt(sum(losses$holdout)),
+    oosr2 = 1 - mean(losses[[method]][losses$holdout], na.rm = TRUE) / oosvar,
+    osSD = sd(sqrt(losses[[method]][losses$holdout]),na.rm = T)
+
+  ))
+}
+
+
+# Display Table
+table3 %>%
+  rename(
+    "IS RMSE" = ismse,
+    "IS R2" = isr2,
+    "IS SD(Value)" = isSD,
+    "OOS RMSE" = oosmse,
+    "OOS SD(Value)" = osSD,
+    "OOS R2" = oosr2
+  ) %>% 
+  select(method,contains("IS"),contains("OOS")) %>%
+  datasummary_df(
+    title = "Replication of MS Model (Raw Values)",
+                 threeparttable = T, fmt = 2)
+
+
+```
+```{r}
+
+
+fulldata = olsbaseline_ks_r$returndf[,c("VALUE","holdout")]
+fulldata$OLS <- olsbaseline_ks_r$returndf$prediction
+
+# Calculate losses
+losses <- fulldata[,c("VALUE","holdout")]
+isvar <-  mean((losses$VALUE[!losses$holdout] - mean(losses$VALUE[!losses$holdout]))^2)
+oosvar <- mean((losses$VALUE[losses$holdout] - mean(losses$VALUE[losses$holdout]))^2)
+
+losses$holdout <- as.logical(losses$holdout)
+
+table4 <- data.frame(setup=NULL,predictor=NULL,parameters=NULL,
+                     ismse=NULL,isr2=NULL,
+                     isSD = NULL,
+                     oosmse=NULL,oosse=NULL,oosr2=NULL,
+                     osSD = NULL)
+
+for(method in setdiff(names(fulldata), c("VALUE","holdout"))) {
+  
+  # Make sure numeric
+  losses[[method]] <- as.numeric(fulldata[[method]] - fulldata$VALUE)^2
+  sd_data = losses[,c("holdout","VALUE")] 
+  
+  # Skip if no non-NA values in holdout
+  if (all(is.na(losses[[method]][losses$holdout]))) next
+  
+  table4 <- rbind(table4, data.frame(
+    method = method,
+    ismse = sqrt(mean(losses[[method]][!losses$holdout], na.rm = TRUE)),
+    isr2 = 1 - mean(losses[[method]][!losses$holdout], na.rm = TRUE) / isvar,
+    isSD = sd(sqrt(losses[[method]][!losses$holdout]),na.rm = T),
+    oosmse = sqrt(mean(losses[[method]][losses$holdout], na.rm = TRUE)),
+    oosse = sd(losses[[method]][losses$holdout], na.rm = TRUE) / sqrt(sum(losses$holdout)),
+    oosr2 = 1 - mean(losses[[method]][losses$holdout], na.rm = TRUE) / oosvar,
+    osSD = sd(sqrt(losses[[method]][losses$holdout]),na.rm = T)
+
+  ))
+}
+
+
+# Display Table
+table4 %>%
+  rename(
+    "IS RMSE" = ismse,
+    "IS R2" = isr2,
+    "IS SD(Value)" = isSD,
+    "OOS RMSE" = oosmse,
+    "OOS SD(Value)" = osSD,
+    "OOS R2" = oosr2
+  ) %>% 
+  select(method,contains("IS"),contains("OOS")) %>%
+  datasummary_df(title = "KS Model (Raw Values)",
+                 threeparttable = T, fmt = 2)
+
+```
+
+Recomputing both the MS and KS models, we see that the performance on level house prices improves compared to the exponentiated values. However these improvements are not to the level of using the logged house price variable. 
 

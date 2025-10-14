@@ -1,0 +1,46 @@
+---
+title: "Lecture 8"
+author: "Thelonious Goerz"
+date: "2025-09-25"
+output: html_document
+---
+
+# Lasso review
+
+New estimate of goodness-of-fit, cv mean prediction error. You obtain this from the coefficient plots. Estimate of out of sample goodness-of-fit, but without using an external dataset, just your train data. Think of it as a competitor to the 1/(n-k) formula, both trying to get at how good is gof on a new dataset, but only working with training dataset.
+
+TO DO:
+
+Try cv. and coeffplots as LASSO postestimation. Try obtaining lasso coefficients Lecture
+
+Think of LASSO as prediction machine. But another way in which it gets used: to select variables (selection operation in LASSO). E.g., I give you 50 regressors, tell me which ones are the most useful, which could I safely ignogre.
+
+One think about the betas LASSO produces is that they are systematically biased toward zero because of the LASSO penalty. It’s getting rid of irrelevant variables and avoiding overfitting, but it’s biasing your good betas.
+
+Some people take a model, use LASSO to select non-zero variables, then re-estimate their model with only the selected vars. This is a second-stage estimation. Guide in R.
+
+-   One way of selecting lambda is to do a grid search across a lot of data and then look at GOF across different variabels
+
+# Review of Core Concepts
+
+-   Econometric critiques - ml not theoretically well-justified
+
+    -   But ML solutions work sometimes
+
+-   In-Sample and out-of-sample metrics
+
+-   Adding complexity to the model
+
+-   Data resampling
+
+Cross validation
+
+for i in folds
+
+train test
+
+estimate
+
+calculate
+
+save

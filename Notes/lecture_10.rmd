@@ -1,0 +1,364 @@
+---
+title: "Lecture 10"
+author: "Thelonious Goerz"
+date: "2025-10-07"
+output: html_document
+---
+
+**Cross-validation, Ridge Regression, Elastic Net**
+
+*Cross Validation*
+
+-   Train small, test large
+
+-   CV-measure of GOF to within-sample SD(var) tells us what the general relationship of the performance would be relative to the baseline SD(var) in a new sample
+
+-   doing CV on OOS and comparing it to in-sample analogue are pretty close
+
+-   What to do if data are not i.i.d. (e.g., panel data context), folds may then not reflect actual data. E.g. with panel data randomize on individuals with repeated observations. Can also randomize on blocks of individuals
+
+**Ridge**
+
+-   L2 penalty, penalized based on squared-coefficient penalty
+
+-   Shrinks on the sum of squared betas
+
+Ridge choses
+
+$$
+Ridge = \sum_i^N (y_i - \beta_0 - \beta_1 x_1....)^2 + \lambda \sum ( \beta_k)^2
+$$
+
+-   Gets a lot of benefit from shrinking larger coefficients
+
+-   Ridge regression will not "zero out" but will shrink terms (no variable selection)
+
+-   Best practice to standardize coefficients before estimation
+
+-   Motivation: when Xs are highly multicolinear. This can make coefficients very unstable. When we are working with high dimensional Xs this may be benefit. We may have multicolinearity and not know it, so the shrinkage term allows for us to handle that in a data driven way.
+
+-   Regularization leads to better GOF
+
+    -   Also something that is an advantage for lasso
+
+-   Standardization:
+
+$$
+\bar x_{ij} = \frac{x_{ij}}{\sqrt{1n \sum_in (x_{ij} -- \bar x_{ij})^2}}
+$$
+
+How to chose between ridge and lasso? Run CV and choose based on GOF
+
+-   Choosing a tuning parameter
+
+    -   small lamdba are OLS, big lambda is shrinking toward intercept
+
+    -   Use cross-validatio
+
+**Elastic Net**
+
+-   Combine LASSO and RIDGE together
+
+-   Motivation: Want to select variables and worried about multicolinearity, want to combine them
+
+$$
+Elastic \ net = \sum_i^N (y_i - \beta_0 - \beta_1 x_1....)^2 + \lambda_1 \sum ( \beta_k)^2 +  \sum \lambda_2 \times  | \beta_k| \\
+Elastic \ net = \sum_i^N (y_i - \beta_0 - \beta_1 x_1....)^2 + \lambda \big (\sum  \alpha \times |\beta_k|  +  \frac{1-\alpha)}{2} (\beta_k)^2 \big )
+$$
+
+-   We have two tuning parameters that we need to check $\lambda$ and $\alpha$
+
+    -   alpha = 1, lasso, alpha = 0 ridge.
+
+**Example**
+
+```{r}
+rm(list = ls())
+library(readr)
+library(tidyverse)
+library(glmnet)
+library(magrittr)
+library(tidymodels)
+```
+
+# %%%%%%%%%
+
+# Workflow for ML
+
+-   Load data and sample train and test
+
+-   Create feature set and outcome data
+
+-   Run cross-validation in glmnet
+
+-   Fit model
+
+-   Assess GOF
+
+-   
+
+```{r Load Data}
+set.seed(100)
+data_c = read_csv("../Data/births_for_class_C.csv")
+data_d = read_csv("../Data/births_for_class_D.csv") 
+
+data_c %<>% mutate(sample_id = row_number())
+id = sample(data_c$sample_id,size = 300)
+
+```
+
+```{r Sample Train}
+`%notin%` = Negate(`%in%`)
+
+train = data_c %>% filter(sample_id %in% id)
+test =  data_c %>% filter(sample_id %notin% id)
+```
+
+```{r Data Frame for Model Performance}
+
+performance_df = 
+  data.frame(
+    Model = c("LASSO","RIDGE","ElASTIC NET (alpha = .25)","ElASTIC NET (alpha = .5)","ElASTIC NET (alpha = .75)"),
+    `SD (Birthweight)` = c(rep(sd(test$birth_weight),5)),
+    `GOF` = c(rep(NA_real_,5))
+  )
+  
+
+```
+
+
+```{r Features and outcome}
+# Lasso X and Y 
+y_lasso = train$birth_weight
+x_lasso = train %>% select(-birth_weight) %>% as.matrix()
+```
+
+```{r Cross Validation}
+cv_model <- cv.glmnet(x_lasso, y_lasso, alpha = 1)
+cv_ridge <- cv.glmnet(x_lasso, y_lasso, alpha = 0)
+cv_en_1 <-  cv.glmnet(x_lasso, y_lasso, alpha = .25)
+cv_en_2 <-  cv.glmnet(x_lasso, y_lasso, alpha = .5)
+cv_en_3 <-  cv.glmnet(x_lasso, y_lasso, alpha = .75)
+```
+
+```{r Create Lambda Plot}
+ggplot() + 
+  geom_point(aes(x = cv_model$lambda,
+           y = sqrt(cv_model$cvm)),
+           size = 2) + 
+  geom_line(aes(x = cv_model$lambda,
+           y = sqrt(cv_model$cvm)), color = "blue") + 
+  theme_bw() + 
+  geom_vline(xintercept = cv_model$lambda.min)
+
+```
+
+```{r Fit Lasso}
+# Define Model
+lasso_model = linear_reg(
+  mode = "regression",
+  engine = "glmnet",
+  penalty = cv_model$lambda.min,
+  mixture = double(1)
+) 
+
+# Create 
+fml = as.formula(paste("birth_weight ~",paste(colnames(x_lasso),collapse = "+")))
+
+# Fit Model 
+lasso_fit = lasso_model %>% 
+  fit(fml,
+      data = train
+  )
+
+lasso_predict = predict(lasso_fit,
+        new_data = test)
+
+test$y_hat_lasso = lasso_predict$.pred
+
+gof_lasso = rmse(data = test,
+     truth = birth_weight,
+     estimate = y_hat_lasso)
+
+# Save 
+performance_df[1,"GOF"] = gof_lasso$.estimate
+
+```
+
+```{r Fit Ridge}
+ridge_model = linear_reg(
+  mode = "regression",
+  engine = "glmnet",
+  penalty = cv_ridge$lambda.min,
+  mixture = 0
+)
+
+fit_ridge = ridge_model %>% 
+  fit(fml,data = train)
+
+ridge_predict = predict(fit_ridge, 
+                        new_data = test
+                        )
+
+test$y_hat_ridge = ridge_predict$.pred
+
+gof_ridge = rmse(
+  test,
+  birth_weight,
+  y_hat_ridge
+)
+
+performance_df[2,"GOF"] = gof_ridge$.estimate
+```
+
+```{r Fit Elastic Net}
+# Elastic Net 1
+elasticNet_model = linear_reg(
+  mode = "regression",
+  engine = "glmnet",
+  penalty  = cv_en_1$lambda.min,
+  mixture = .25
+)
+
+fit_en_1 = elasticNet_model %>% 
+  fit(fml, 
+      data = train)
+
+
+en_1_predict = predict(fit_en_1, 
+                        new_data = test
+                        )
+
+test$y_hat_en_1 = en_1_predict$.pred
+
+gof_en_1 = rmse(
+  test,
+  birth_weight,
+  y_hat_en_1
+)
+
+# Elastic Net 2
+elasticNet_model_2 = linear_reg(
+  mode = "regression",
+  engine = "glmnet",
+  penalty  = cv_en_2$lambda.min,
+  mixture = .5
+)
+
+fit_en_2 = elasticNet_model_2 %>% 
+  fit(fml, 
+      data = train)
+
+
+en_2_predict = predict(fit_en_2, 
+                        new_data = test
+                        )
+
+test$y_hat_en_2 = en_2_predict$.pred
+
+gof_en_2 = rmse(
+  test,
+  birth_weight,
+  y_hat_en_2
+)
+
+# Elastic Net 3
+
+elasticNet_model_3 = linear_reg(
+  mode = "regression",
+  engine = "glmnet",
+  penalty  = cv_en_3$lambda.min,
+  mixture = .75
+)
+
+fit_en_3 = elasticNet_model_3 %>% 
+  fit(fml, 
+      data = train)
+
+
+en_3_predict = predict(fit_en_3, 
+                        new_data = test
+                        )
+
+test$y_hat_en_3 = en_3_predict$.pred
+
+gof_en_3 = rmse(
+  test,
+  birth_weight,
+  y_hat_en_3
+)
+
+
+performance_df[3,"GOF"] = gof_en_1$.estimate
+performance_df[4,"GOF"] = gof_en_2$.estimate
+performance_df[5,"GOF"] = gof_en_3$.estimate
+
+```
+
+```{r}
+# Display 
+performance_df
+```
+
+```{r}
+split = initial_split(data_c)
+tr = training(split)
+te = testing(split)
+
+rf_mod = rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("regression")
+
+fit_rf = rf_mod %>% 
+  fit(fml, data = tr)
+
+oos_rf =predict(fit_rf,
+       new_data = te)
+
+te$y_hat = oos_rf$.pred
+
+rmse(birth_weight,
+     y_hat,
+     data =te)
+
+```
+```{r Cross Validation}
+set.seed(1000) 
+
+folds = vfold_cv(tr,v = 10)
+
+rf_w = 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_formula(fml)
+
+rf_resamp = 
+  rf_w %>% 
+  fit_resamples(folds)
+
+collect_metrics(rf_resamp)
+
+?collect_metrics
+
+```
+
+```{r}
+# Tuning
+folds = vfold_cv(tr,v = 10)
+
+en = linear_reg(
+  mode = "regression",
+  engine = "glmnet",
+  penalty = tune(),
+  mixture = tune()
+)
+
+lasso_rec = 
+recipe(fml, data =tr)
+
+
+tune_lambda = tune_grid(en, lasso_rec, resamples = folds, grid = expand.grid(mixture = 0:.75, penalty = 0:20))
+
+show_best(tune_lambda)
+```
+
