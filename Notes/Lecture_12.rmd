@@ -1,0 +1,50 @@
+---
+title: "Lecture 12"
+author: "Thelonious Goerz"
+date: "2025-10-16"
+output: html_document
+---
+
+**Log odds are essentially linear**
+
+-   Looking at changes it is linear
+
+-   Logit $\beta$ Change in index for change in x
+
+    -   $e^{\beta}$ (1 = no change, increase or decrease above or below refer to percent increase or decrease
+
+-   Binary Dependent variable GOF
+
+    -   Error rate, confusion matrix, Receiver Operator Curve (ROC) AUC curve
+
+-   Pr(y=1)
+
+    -   Bayes rule - use 50% as a cutoff threshold for 0/1
+
+-   Confusion matrix
+
+    -   easy to compute, best when cases are balanced, one number
+
+    -   but, misleading for imbalanced data, doestn't distinguish error types, insensitive to prediction confidence (contribution to accuracy is the same no matter where you are above and below the cutoff)
+
+-   true positives (p–p)
+
+-   true negatives (n-n)
+
+-   False positives (p-n)
+
+-   False Negatives (n-p)
+
+**ROC**
+
+-   Receiver Operator Curve
+
+    -   The idea is try all thresholds and graph out false and true positive rate
+
+        -   balancing false and true positive rates
+
+    -   Random would be a 45 degree line
+
+    -   The closer the curve is toward a 45 degree angle (Horizontal line) - better model
+
+    -   

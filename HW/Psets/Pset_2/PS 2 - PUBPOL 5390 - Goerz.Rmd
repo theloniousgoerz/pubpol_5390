@@ -1,0 +1,246 @@
+---
+title: "PUBPOL 5390 Homework 2"
+author: Thelonious Goerz
+date: "Draft date: `r format(Sys.time(), '%d %B %Y')`"
+output:
+  pdf_document:
+    number_sections: yes
+linestretch: 1.5
+fig_width: 5
+fig_height: 2.5
+csl: "/Users/theloniousgoerz/Academic/Professional/Resources/Citations/styles-master/american-sociological-association.csl"
+editor_options:
+  chunk_output_type: inline
+geometry: "left=1in,right=1in,top=1in,bottom=1in"
+number-sections: true
+keep_tex: true
+link-citations: yes
+linkcolor: blue
+font_size: 12pt
+header-includes: 
+  - \usepackage{framed} 
+  - \usepackage{amsmath}
+  - \usepackage{tcolorbox} 
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+  - \usepackage{multirow} 
+  - \usepackage{xcolor} 
+  - \usepackage{tabularray}
+  - \def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}} 
+  - \usepackage{setspace} 
+  - \usepackage{threeparttable}
+  - \usepackage{booktabs}
+  - \usepackage{siunitx}
+  - \usepackage{tikz}
+  - \usepackage{tabularray}
+  - \usepackage{float}
+  - \usepackage{graphicx}
+  - \usepackage{rotating}
+  - \usepackage[normalem]{ulem}
+  - \UseTblrLibrary{booktabs}
+  - \UseTblrLibrary{siunitx}
+---
+
+```{r setup, include=TRUE, results="hide", echo = FALSE, message = F}
+
+ rm(list = objects())
+ # THIS IS THE WIDTH OF THE CODE                                                ###
+ knitr::opts_chunk$set(echo = F,
+                       resuls = T, message = F, warning = F)
+ 
+ # knitr::opts_chunk$set(fig.width = unit(16,"cm"), fig.height = unit(9,"cm"))
+ 
+```
+
+\doublespacing
+\fontsize{12}{22}
+\setstretch{2}
+\baselineskip=29pt
+
+```{r Load Packages}
+rm(list = ls())
+### Packages ###
+library(readr)
+library(tidyverse)
+library(fixest)
+library(modelsummary)
+library(haven)
+library(magrittr)
+library(splines)
+library(glmnet)
+library(KernSmooth)
+library(boot)
+library(tidymodels)
+library(here)
+
+```
+
+```{r Data}
+# Problem 1 
+Gsmall = read_csv(here("Data","births_for_class_Gsmall.csv"))
+H = read_csv(here("Data","births_for_class_H.csv"))
+
+```
+
+# Question 1
+
+```{r Feature Set}
+set1 = c(
+    "gestation_weeks",
+    "mom_age",
+    "mom_race_hispanic_status",
+    "mom_educ")
+
+set2 = c(    
+    "mom_age",
+    "mom_race_hispanic_status",
+    "mom_educ",
+    "gestation_weeks",
+    "time",
+    "in_hospital",
+    "gestation_weeks"
+    )
+
+FS_1 = paste(
+set1,
+collapse = "+"
+)
+
+FS_2 = paste(
+set2,
+collapse = "+"
+)
+
+```
+
+```{r}
+# Label Train and Test Set 
+training = Gsmall
+testing = H
+```
+
+```{r Pre-allocate Results DF}
+performance_df = 
+  data.frame(
+    Model = c("OLS","LASSO","RIDGE","ELASTIC NET"),
+    Feature_set = c(rep("Small",4),rep("Medium",4),rep("Large",4)),
+    `SD (Birthweight) In-sample` = c(rep(sd(Gsmall$birth_weight),12)),
+    `SD (Birthweight) Out of Sample` = c(rep(sd(H$birth_weight),12)),
+    `RMSE IS` = c(rep(NA_real_,12)),
+    `RMSE CV` = c(rep(NA_real_,12)),
+    `RMSE OOS` = c(rep(NA_real_,12)),
+    lambda = c(rep(NA_real_,12)),
+    alpha = c(rep(NA_real_,12)),
+    check.names = F
+  )
+
+```
+
+```{r OLS}
+
+ols_function = function(outcome,
+                        training,
+                        testing,
+                        FS_recipe
+                        ){
+## SD Y ------------------------------
+is_sd_y = sd(training[[outcome]])
+os_sd_y = sd(testing[[outcome]])
+## Define Model ------------------------------
+ols = linear_reg(
+  mode = "regression",
+  engine = "lm"
+) 
+## Define Workflow ------------------------------
+ols_workflow = 
+ workflow() %>% 
+  add_model(ols) %>% 
+  add_recipe(FS_recipe)
+
+## Fit Model -------------------------------------
+fit_ols =
+  ols_workflow %>% 
+  fit(data = training)
+
+## Obtain Predictions ------------------------------
+ols_oos = predict(fit_ols,testing)
+  
+# Calculate RMSE ------------------------------
+
+## Combine Train-Test predictions and Outcomes into a DF 
+ols_gof_train_df = data.frame(
+  estimate = as.numeric(predict(fit_ols,training)$.pred),
+  truth = unlist(fit_ols$pre$mold$outcomes[[outcome]]))
+
+ols_gof_test_df = data.frame(
+  estimate = as.numeric(ols_oos$.pred),
+  truth = as.numeric(testing[[outcome]]))
+
+## Calculate RMSE ------------------------------
+ols_train_rmse = rmse(
+     data = ols_gof_train_df,
+     truth,
+     estimate)
+
+ols_test_rmse = rmse(
+     data = ols_gof_test_df,
+     truth,
+     estimate)
+# Return Items ------------------------------
+return(
+  data.frame(
+    Model = "OLS",
+    in_sample_sd_y = is_sd_y,
+    oo_sample_sd_y = os_sd_y,
+    in_sample_rmse = ols_train_rmse$.estimate,
+    oo_sample_rmse = ols_test_rmse$.estimate,
+    n_predictors = ncol(fit_ols$pre$mold$predictors)
+  )
+)
+}
+
+## Create Recipes 
+FS_recipe_1 = recipe(as.formula(paste0("birth_weight","~",FS_1)), 
+         data = training) %>%
+         step_zv()
+
+FS_recipe_2 = recipe(as.formula(paste0("birth_weight","~",FS_2)), 
+         data = training) %>%
+  step_mutate(
+    across(c(
+   # mom_age,
+   # mom_race_hispanic_status,
+   # mom_educ,
+    gestation_weeks
+    #time
+    ), 
+    as.factor)
+  ) %>% 
+    step_dummy(all_nominal_predictors(),
+             one_hot = T) %>% 
+  step_zv(all_predictors())
+
+# Run OLS Function on feature sets 
+ols_fs_1 = ols_function("birth_weight",
+    FS_recipe = FS_recipe_1,
+    training = training,
+    testing = testing)
+
+ols_fs_2 = ols_function("birth_weight",
+    FS_recipe = FS_recipe_2,
+    training = training,
+    testing = testing) 
+
+### Save Metrics ###
+
+rbind(ols_fs_1,
+      ols_fs_2)
+# why are these not chnaging? hmm 
+```
+
+
+
+
+
+

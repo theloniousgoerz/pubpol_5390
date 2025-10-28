@@ -1,0 +1,44 @@
+---
+title: "Lecture 13"
+author: "Thelonious Goerz"
+date: "2025-10-21"
+output: html_document
+---
+
+**ROC Curve**
+
+-   Try all thresholds
+
+    -   get curve and look for TPR FPR intersection
+
+    -   45 degree curve kind of corresponds to the intercept only curve
+
+-   Area Under the Curve (AUC)
+
+    -   Perfect is an AUC of 1, .5 = random, 0 = worse than random
+
+    -   AUC is not percent correct – its false and true positive
+
+**Calibration Plot**
+
+-   How does Pr( Y= 1\| Pr. hat)
+
+    -   Could do a non-parametric graph and quantile bins
+
+    -   Works with regression and classification
+
+    -   x = y-hat, y = mean(y) can do for 0,1 or continuous
+
+**Confusion matrix**
+
+-   Accuracy - diagonal
+
+-   true positive
+
+-   false positive
+
+**Heller at al**
+
+-   Recall - True positive
+
+-   Total Recall =

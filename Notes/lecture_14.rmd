@@ -1,0 +1,180 @@
+---
+title: "Lecture 14"
+author: "Thelonious Goerz"
+date: "2025-10-23"
+output: html_document
+---
+
+# Tree-Based Methods
+
+-   Can add regularization parameters to tree-based methods
+
+-   Classification tree or regression tree
+
+-   tree building process
+
+    -   splitting rule
+
+    -   goal - partition the set of Xs into a collection of rectangular regions
+
+        -   each observation goes into one region
+
+        -   predicted value is the same for all observations in the same region
+
+        -   continuous: ybar
+
+        -   binary: probability
+
+-   idea - partitioning the parameter space into groups
+
+-   Building a regression tree
+
+    -   Start with a single tree within training data
+
+    -   calculate y_hat = y_bar for data
+
+    -   compute MSE for single pooled note: Var(Y)
+
+    -   start by splitting on a variable X_j (years of experience)
+
+        -   Consider a cutoff value C_i (cutoff is 5.5)
+
+    -   Get candidate splits - calculate Y_hat = ybar within each split
+
+    -   Get new MSE
+
+# In class exercise
+
+```{r}
+rm(list = ls())
+library(tidymodels)
+library(readr)
+library(tidyverse)
+library(magrittr)
+```
+
+```{r Read Data}
+g = read_csv("../Data/births_for_class_Gsmall.csv")
+h = read_csv("../Data/births_for_class_H.csv")
+```
+
+```{r DATA PREP}
+g %<>% mutate(label = "G")
+h %<>% mutate(label = "H")
+c = rbind(g,h)
+
+g$birth_weight
+## Create LHS ## 
+c %<>% 
+  mutate(LBW = factor(ifelse(birth_weight < 2500,"low","normal"))) %>% 
+  mutate(across(c(gestation_weeks,in_hospital,mom_educ,residence_status), as.factor)) 
+
+G = c[c$label == "G",] %>% select(-label)
+H = c[c$label == "H",] %>% select(-label) %>% filter(gestation_weeks %in% G$gestation_weeks)
+
+
+```
+
+```{r Estimate Probit}
+
+binary = logistic_reg() %>%
+  set_engine("glm", family = binomial(link = "probit")) 
+
+bw_recipe = 
+  recipe(LBW ~ ., data = G)
+
+bw_recipe_oos = 
+  recipe(LBW ~ ., data = H) 
+
+
+# workflow 
+wflow = 
+ workflow() %>% 
+  add_model(binary) %>% 
+  add_recipe(bw_recipe)
+
+# Fit Model 
+fit_probit =
+  wflow %>% 
+  fit(data = G)
+
+# fit on OOS # 
+wflow_oos = 
+ workflow() %>% 
+  add_model(binary) %>% 
+  add_recipe(bw_recipe_oos)
+
+fit_oos = 
+  wflow_oos %>% 
+  fit(data = H)
+
+G$y_hat_probit_is = predict(fit_probit,new_data = G,type = "prob")$.pred_low
+H$y_hat_probit_os = predict(fit_oos,new_data = H,type = "prob")$.pred_low
+
+```
+
+```{r Confusion Matrix Train}
+
+augment(fit_probit, new_data = G) |>
+  conf_mat(truth = LBW, estimate = .pred_class)
+
+```
+
+```{r Confusion Test}
+
+augment(fit_probit, new_data = H) |>
+  conf_mat(truth = LBW, estimate = .pred_class)
+
+
+# accuracy
+(631+ 10365) / nrow(H)
+# tpr
+631 / (631+143)
+# FPR
+326 /(326 + 10365)
+
+```
+
+```{r}
+fit
+augment(fit_probit, new_data = G) %>%
+roc_curve(truth = LBW,
+          .pred_low) %>%
+  autoplot()
+
+
+augment(fit_probit, new_data = H) %>%
+roc_auc(truth = LBW,
+          .pred_low) %>% summary()
+```
+
+
+```{r Calibration Plot}
+library(KernSmooth)
+# Get quantiles
+q = quantile(H$y_hat_probit_os,probs = c(.05,.95))
+
+H %<>% mutate(low_bw = ifelse(LBW=="low",1,0))
+  
+calibration = locpoly(x =H$y_hat_probit_os,y = H$low_bw , bandwidth = .5,
+               degree = 3,
+               kernel = "Epanechnikov",
+               range.x = c(q[1],q[2]),gridsize = 1000)
+
+calibration %<>% data.frame() 
+
+
+ggplot() + 
+  geom_line( size = 2, color = "blue",aes(calibration$x,calibration$y)) + 
+  theme_bw() 
+
+```
+
+
+
+
+
+
+
+
+

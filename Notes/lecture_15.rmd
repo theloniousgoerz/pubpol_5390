@@ -1,0 +1,90 @@
+---
+title: "Lecture 15"
+author: "Thelonious Goerz"
+date: "2025-10-28"
+output: html_document
+---
+
+# Tree Selection Review 
+
+-   Splitting data based on MSE relative to the global averate
+
+-   Consider different variables and then let the model learn different cutoffs
+
+-   Recursive binary splitting
+
+    -   once a branch has been split, re-do the split over and over
+
+        -   also known as greedy and top down – focuses on a single split each time
+
+-   **When to stop splitting?**
+
+    -   In principle you could have one observation per leaf
+
+    -   Researcher makes a decision about how many observations per leaf
+
+    -   The smaller the observation threshold, the more complex the tree will be
+
+    -   We can also set the tree depth (e.g., only 5 splits per tree)
+
+        -   This limit is a **tuning parameter**
+
+-   **Trees capture (automatically)**
+
+    -   nonlinearities
+
+    -   interactions
+
+    -   accounts for ordered data
+
+-   **But**
+
+    -   overfitting problems (exacerbated by small leaf sizes)
+
+        -   because the tree method is based on splitting, highly multicolinear Xs can lead to really different trees
+
+    -   non-robust (sensitive to small changes in the data, could lead to different tree)
+
+    -   Generally, does not have the same predictive accuracy as other methods
+
+-   **How to handle overfitting?**
+
+    -   Overfit first and systematically prune back
+
+    -   Idea 1: the tree might have overfitting problems bc big tree, smaller the tre might miss predictions. So we want to find a sweet spot in terms of xomplexity
+
+    -   Idea 2: build an over fit tree and prune it back
+
+    -   Idea 3:
+
+-   **Pruning**
+
+    -   Size of the tree \|T\| is the number of leaves
+
+        -   choose a penalty parameter, alpha
+
+        -   tree-based objective function MSE- alpha \* \|T\|
+
+            -   Cross validate alpha
+
+        -   If alpha = 0, no change. Increase alpha progressively to collapse branches and take GOF at each step to decide
+
+-   Looking ahead: Classification Trees
+
+    -   similar logic, but different goodness of fit statistics
+
+-   Ensembles of trees
+
+    -   bagging – bootstrap aggregating
+
+        -   bootstrapping samples of the training data
+
+    -   Can use gradient boosted methods
+
+-   **Bootstrapping**
+
+    -   Create a new sample - drawing observation with replacement
+
+    -   use same N, but can be diff
+
+    -   Can use to create child samples to create trees and take the average
