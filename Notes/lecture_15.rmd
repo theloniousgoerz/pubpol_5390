@@ -5,7 +5,7 @@ date: "2025-10-28"
 output: html_document
 ---
 
-# Tree Selection Review 
+# Tree Selection Review
 
 -   Splitting data based on MSE relative to the global averate
 
