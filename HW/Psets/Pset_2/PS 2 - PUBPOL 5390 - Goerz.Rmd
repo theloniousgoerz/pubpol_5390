@@ -73,6 +73,7 @@ library(KernSmooth)
 library(boot)
 library(tidymodels)
 library(here)
+library(KernSmooth)
 
 ```
 
@@ -80,7 +81,7 @@ library(here)
 # Problem 1 
 Gsmall = read_csv(here("Data","births_for_class_Gsmall.csv"))
 H = read_csv(here("Data","births_for_class_H.csv"))
-
+G = read_csv(here("Data","births_for_class_G.csv"))
 ```
 
 # Question 1
@@ -137,23 +138,6 @@ collapse = "+"
 # Label Train and Test Set 
 training = Gsmall
 testing = H
-```
-
-```{r Pre-allocate Results DF}
-performance_df = 
-  data.frame(
-    Model = c("OLS","LASSO","RIDGE","ELASTIC NET"),
-    Feature_set = c(rep("Small",4),rep("Medium",4),rep("Large",4)),
-    `SD (Birthweight) In-sample` = c(rep(sd(Gsmall$birth_weight),12)),
-    `SD (Birthweight) Out of Sample` = c(rep(sd(H$birth_weight),12)),
-    `RMSE IS` = c(rep(NA_real_,12)),
-    `RMSE CV` = c(rep(NA_real_,12)),
-    `RMSE OOS` = c(rep(NA_real_,12)),
-    lambda = c(rep(NA_real_,12)),
-    alpha = c(rep(NA_real_,12)),
-    check.names = F
-  )
-
 ```
 
 ```{r OLS}
@@ -428,7 +412,6 @@ rglr_test_rmse = rmse(
 
 ```
 
-
 ```{r Run Regularized Regressions}
 set.seed(9999)
 # Run LASSO Models ------------------------------------- # 
@@ -526,10 +509,16 @@ elastic_FS_3 = regularize_function(outcome = "birth_weight",
                         )
 
 
-
+ols_fs_1 %<>% mutate(mixture = NA,penalty = NA)
+ols_fs_2 %<>% mutate(mixture = NA,penalty = NA)
+ols_fs_3 %<>% mutate(mixture = NA,penalty = NA)
 
 # Look at Models
-rbind(lasso_FS_1,
+
+rbind(ols_fs_1,
+      ols_fs_2,
+      ols_fs_3,
+      lasso_FS_1,
       lasso_FS_2,
       lasso_FS_3,
       # Ridge
@@ -540,8 +529,281 @@ rbind(lasso_FS_1,
       elastic_FS_1,
       elastic_FS_2,
       elastic_FS_3
-      )
+      ) %>% 
+  datasummary_df(
+    title = "Comparison of Predictive Performance Across Models and Feature Sets"
+  )
 ```
+### Cross-Validation 
+
+Within the tidymodels framework (the R analogue to scikit-learn), there are no defaults for cross-validation. Instead, I wrote my own function a la Mullinathan and Spiess, to run the models in an automated way. These functions allow the grid size for parameters to be searched over and the number of folds for cross-validation. For all models, I set the number of folds to 10, the grid size to 30 or 50 depending on whether the penalty is L1 or L2. The goodness of fit measure that I use is RMSE. 
+
+### Model Performance 
+
+I use three different covariate sets that layer controls in each model and change the functional form. The firs model includes linear forms of relevant predictors (e.g., mother's age and gestation). The second and third incorporate non-linear terms as well as expanded covariates. The majority of the improvement in predictive performance in richer models is obtained from gestation weeks. 
+
+Overall, the results indicate that the best model in terms of predictive performance is a LASSO regression that selects 30 predictors out of a candidate set of 39 and achieves an out-of-sample RMSE of $437$. Across ridge and elastic net, the RMSE is slightly worse but not by that much. In general, each of the second feature set models achieves similar results. The third feature set, which is the richest model, performs the worst across models. Though, the LASSO model shrinks the feature set from 542 to 94, which reduces the RMSE. Even with shrinkage, it still performs poorly. 
+
+# Question 2
+
+```{r}
+
+```
+
+# Question 3
+
+```{r Prepare Binary Data}
+training_g = G
+training_g %<>% mutate(lbw = factor(ifelse(birth_weight <= 1500,"low","normal"),levels = c("low","normal")))
+testing %<>%  mutate(lbw = factor(ifelse(birth_weight <= 1500,"low","normal"),  levels = c("low","normal")))
+```
+
+```{r Probit Small}
+
+## N Y ------------------------------
+tr = training_g %>% 
+  group_by(lbw) %>% 
+  summarise(n = n()) %>% 
+  as_vector()
+t = testing %>% 
+  group_by(lbw) %>% 
+  summarise(n = n()) %>% 
+  as_vector()
+is_n_y = tr[3]
+os_n_y = t[3]
+## Define Model ------------------------------
+probit = logistic_reg() %>%
+  set_engine("glm", 
+             family = binomial(link = "probit")) 
+
+## Define Recipe 
+FS_recipe_1_lbw = recipe(as.formula(paste0("lbw","~",FS_1)), 
+         data = training_g) %>%
+         step_zv()
+## Define Workflow ------------------------------
+
+glm_workflow = 
+ workflow() %>% 
+  add_model(probit) %>% 
+  add_recipe(FS_recipe_1_lbw)
+
+## Fit Model -------------------------------------
+fit_probit =
+  glm_workflow %>% 
+  fit(data = training_g)
+
+## Obtain Predictions -----------------------------
+probit_oos = predict(fit_probit,testing,type ="prob")
+```
+
+# b.
+
+## Calibration Plot 
+
+```{r Calibration Plot}
+## Calibration Plot  ------------------------------
+testing$y_hat_lbw = probit_oos$.pred_low
+testing %<>% mutate(y_hat_b = ifelse(y_hat_lbw == "low",1,0))
+# Get quantiles
+q = quantile(testing$y_hat_lbw,probs = c(0,1))
+
+testing %<>% mutate(low_bw = ifelse(lbw =="low",1,0))
+  
+calibration_1 = locpoly(x = testing$y_hat_lbw,
+                        y = testing$low_bw, 
+                        bandwidth = .3,
+                        degree = 5,
+                        kernel = "uniform",
+                        range.x = c(q[1],q[2]),
+                        gridsize = 1000)
+
+calibration_1 %<>% 
+  data.frame() 
+
+ggplot() + 
+  geom_line(size = 2, color = "blue",
+            aes(calibration_1$x,calibration_1$y)) + 
+  theme_bw() + 
+  geom_abline(intercept = 0, 
+              slope = 1, 
+              size = 0.5,
+              linetype = "dashed") + 
+  labs(x = "Pr(BW = Low)",
+       y = "Prop(Low)",
+       title = "Calibration Plot")
+```
+
+## Confusion Matrix 
+
+```{r}
+augment(fit_probit, new_data = testing) %>% 
+  conf_mat(truth = lbw, estimate = .pred_class) 
+
+ augment(fit_probit, new_data = testing) %>% 
+   group_by(.pred_class,lbw) %>% 
+   summarise(n())
+```
+
+```{r}
+## Accuracy
+probit_oos_accuracy = augment(fit_probit, new_data = testing) %>% 
+accuracy(truth = lbw, estimate = .pred_class)
+# Calculate TPR or sensitivity 
+probit_oos_sensitivity = augment(fit_probit, new_data = testing) %>% 
+sens(truth = lbw, estimate = .pred_class)
+## Precision 
+probit_oos_precision = augment(fit_probit, new_data = testing) %>% 
+precision(truth = lbw, estimate = .pred_class)
+```
+
+## ROC Curve
+
+```{r}
+ augment(fit_probit, new_data = testing) %>% 
+  roc_curve(lbw,.pred_low) %>% 
+  ggplot(aes(x = 1 - specificity, y = sensitivity)) +
+  geom_path() +
+  geom_abline(lty = 3) +
+  coord_equal() +
+  theme_bw() + 
+  labs(title = "ROC Curve")
+
+```
+## AUC
+
+```{r}
+ auc = augment(fit_probit, new_data = testing) %>% 
+  roc_auc(truth = lbw,.pred_low) 
+```
+
+```{r}
+# Comine into table 
+rbind(probit_oos_accuracy,
+      probit_oos_precision,
+      probit_oos_sensitivity,
+      auc
+      ) %>% 
+  data.frame() %>% 
+  datasummary_df(title = "Probit GOF (Feature set 1)")
+```
+
+## c. 
+
+```{r Probit Large}
+
+FS_recipe_3_lbw <- recipe(as.formula(paste0("lbw","~",FS_3)), 
+                          data = training_g) %>%
+  step_mutate(
+    across(
+      c(mom_race_hispanic_status, 
+        mom_educ),
+        as.factor
+    )
+  ) %>%
+  step_novel(all_factor_predictors()) %>%
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
+  step_zv(all_predictors())
+
+## Define Workflow ------------------------------
+model_tune_probit <- logistic_reg(
+  penalty = tune(),
+  mixture = 1
+) %>%
+  set_engine("glmnet", family = "binomial", link = "probit") %>%
+  set_mode("classification")
+
+# Cross-Validate ------------------------------
+
+folds <- vfold_cv(training_g, v = 5)
+lambda_grid <- expand.grid(penalty = c(0, 100))
+
+cv_lambda <- tune_grid(
+  model_tune_probit,
+  FS_recipe_3_lbw,
+  resamples = folds,
+  grid = lambda_grid
+)
+
+best <- select_best(cv_lambda, metric = "roc_auc")[1,1]
+
+final_wf <- workflow() %>%
+  add_recipe(FS_recipe_3_lbw) %>%
+  add_model(model_tune_probit)
+
+final_fit <- finalize_workflow(final_wf, best) %>%
+  fit(training_g)
+
+## Obtain Predictions -----------------------------
+probit_oos_lg = predict(fit_probit_lg,testing,type ="prob")
+## Calibration plot -----------------------------
+
+testing$y_hat_lbw = probit_oos_lg$.pred_low
+testing %<>% mutate(y_hat_b = ifelse(y_hat_lbw == "low",1,0))
+# Get quantiles
+q = quantile(testing$y_hat_lbw,probs = c(0,1),na.rm =  T)
+testing %<>% mutate(low_bw = ifelse(lbw =="low",1,0))
+  
+calibration_1 = locpoly(x = testing$y_hat_lbw,
+                        y = testing$low_bw, 
+                        bandwidth = .3,
+                        degree = 5,
+                        kernel = "uniform",
+                        range.x = c(q[1],q[2]),
+                        gridsize = 1000)
+
+calibration_1 %<>% 
+  data.frame() 
+
+ggplot() + 
+  geom_line(size = 2, color = "blue",
+            aes(calibration_1$x,calibration_1$y)) + 
+  theme_bw() + 
+  geom_abline(intercept = 0, 
+              slope = 1, 
+              size = 0.5,
+              linetype = "dashed") + 
+  labs(x = "Pr(BW = Low)",
+       y = "Prop(Low)",
+       title = "Calibration Plot (Large Feature Set)")
+## Goodness of Fit  -----------------------------
+### Confusion Matrix 
+augment(final_fit, new_data = testing) %>%
+  conf_mat(truth = lbw, estimate = .pred_class)
+### Accuracy
+probit_oos_accuracy_lg = augment(final_fit, new_data = testing) %>% 
+accuracy(truth = lbw, estimate = .pred_class)
+### Calculate TPR or sensitivity 
+probit_oos_sensitivity_lg = augment(final_fit, new_data = testing) %>% 
+sens(truth = lbw, estimate = .pred_class)
+### Precision 
+probit_oos_precision_lg = augment(final_fit, new_data = testing) %>% 
+precision(truth = lbw, estimate = .pred_class)
+### AUC
+ auc_lg = augment(final_fit, new_data = testing) %>% 
+  roc_auc(truth = lbw,.pred_low) 
+### ROC Curve 
+ augment(final_fit, new_data = testing) %>% 
+  roc_curve(lbw,.pred_low) %>% 
+  ggplot(aes(x = 1 - specificity, y = sensitivity)) +
+  geom_path() +
+  geom_abline(lty = 3) +
+  coord_equal() +
+  theme_bw() + 
+  labs(title = "ROC Curve")
+ 
+### Display GOF 
+ rbind(probit_oos_accuracy_lg,
+       probit_oos_precision_lg,
+       probit_oos_sensitivity_lg,
+       auc_lg
+      ) %>% 
+  data.frame() %>% 
+  datasummary_df(title = "Probit GOF (Feature set 3)")
+
+```
+
+
+
 
 
 

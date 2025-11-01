@@ -1,0 +1,149 @@
+---
+title: "Lecture 16"
+author: "Thelonious Goerz"
+date: "2025-10-30"
+output: html_document
+---
+
+# Ensembles of trees 
+
+-   How many trees
+
+    -   more is better - averaging reduces noise
+
+    -   diminishing returns
+
+    -   only cost is commutation time
+
+    -   fold wisdom - 50-500
+
+-   Ensemble solves the noise
+
+# Bagging 
+
+Regular BS - oos
+
+implication is that about 1/3 observations are not used
+
+if sample without replacement, selecting a fraction \<1 of observations
+
+The observations not used are like a mini testing sample
+
+so the gof on those observations gives a "free" CV estimate
+
+-   Out of Bag goodness of fit estimate (averaging across trees)
+
+    -   Can be thought of an out of sample Goodness of fit
+
+-   Random forests
+
+    -   baggins is not good enough
+
+    -   the trees that we get from bagging may be too correlated
+
+        -   if there are very extra predictive Xs (e.g., Gestation) then the dominant feature will be used in the trees too much
+
+    -   Solution: de-correlate the trees
+
+    -   only consider a subset of features at each node of each tree,
+
+    -   A random fraction of features can be used at each node (e.g., within a tree at each node you look at only a random subset)
+
+-   What fraction?
+
+    -   folk wisdom (textbook) answer
+
+    -   regression trees = k/3
+
+    -   classification trees $\sqrt K$
+
+    -   this can think of this as a tuning parameter
+
+-   **Athey:** trees are self-regularizing
+
+    -   built into the procedure – not a post-estimation procedure like in other methods
+
+-   variable importance measures
+
+    -   what variables matter? in a single tree we can look at what its splitting on
+
+        -   but in a forest, it is very black box/
+
+        -   but there are stats for this - look at each tree and look at each node (count of times that variables were chosen)
+
+        -   We can also look at all splits and get a measure of how much that feature improves MSE - average across all
+
+-   Classification trees
+
+    -   predictions for binary outcomes
+
+    -   $\hat p_{mk}$ predictions for outcome K, leaf M
+
+-   GOF = 3 choices built on pred prob and majority vote
+
+    -   accuracy
+
+    -   gini
+
+    -   cross entropy
+
+    -   node impurity - goal is a low value for each outcome
+    
+```{r}
+library(tidymodels)
+library(here)
+library(readr)
+
+d = read_csv(here("Data","births_for_class_G.csv"))
+```
+
+    
+    
+```{r}
+t = initial_split(d, prop = 3/4)
+
+train = training(t)
+test = testing(t)
+
+
+tree_rec <- 
+  recipe(birth_weight ~ ., data = train) %>%
+  step_dummy(all_nominal(), -all_outcomes()) 
+
+tree_prep <- prep(tree_rec)
+juiced <- juice(tree_prep)
+
+```
+
+```{r}
+tune_spec <- rand_forest(
+  mtry = tune(),
+  trees = 1000,
+  min_n = tune()
+) %>%
+  set_mode("regression") %>%
+  set_engine("ranger")
+
+tune_wf <- workflow() %>%
+  add_recipe(tree_rec) %>%
+  add_model(tune_spec)
+
+```
+
+```{r}
+set.seed(234)
+trees_folds <- vfold_cv(train)
+
+doParallel::registerDoParallel()
+
+set.seed(345)
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = trees_folds,
+  grid = 20
+)
+
+tune_res
+
+```
+
