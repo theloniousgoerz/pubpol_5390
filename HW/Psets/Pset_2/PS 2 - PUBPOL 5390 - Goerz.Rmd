@@ -82,6 +82,7 @@ library(KernSmooth)
 Gsmall = read_csv(here("Data","births_for_class_Gsmall.csv"))
 H = read_csv(here("Data","births_for_class_H.csv"))
 G = read_csv(here("Data","births_for_class_G.csv"))
+ahs =   read.csv(here("Data","ahs2011n.csv"),quote="\"'")
 ```
 
 # Question 1
@@ -182,88 +183,54 @@ ols_gof_test_df = data.frame(
 ## Calculate RMSE ------------------------------
 ols_train_rmse = rmse(
      data = ols_gof_train_df,
-     truth,
-     estimate)
+    truth =  truth,
+    estimate =  estimate)
 
 ols_test_rmse = rmse(
      data = ols_gof_test_df,
-     truth,
-     estimate)
+     truth = truth,
+     estimate = estimate)
+
+oos_r2 = rsq(data = ols_gof_test_df,
+     truth = truth,
+     estimate = estimate)$.estimate %>% as.numeric()
+is_r2 = rsq(data = ols_gof_train_df,
+     truth = truth,
+     estimate = estimate)$.estimate %>% as.numeric()
+# Quitiles of price  ------------------------------
+quintiles = ols_gof_test_df %>%
+ mutate(quintile = cut(
+      truth,
+      breaks = quantile(truth, probs = seq(0, 1, 0.20), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = paste0("P", 1:5)
+    )) %>% 
+  # summarise by metric 
+  group_by(quintile) %>% 
+  summarise(mu_lv_ols = mean(truth),
+            mu_p_ols = mean(estimate),
+            ols_diff = (mu_lv_ols - mu_p_ols)
+            ) %>%
+  select(quintile,ols_diff) %>% 
+  pivot_wider(names_from = "quintile", values_from = "ols_diff")
+
 # Return Items ------------------------------
 return(
-  data.frame(
+  cbind(data.frame(
     Model = "OLS",
     in_sample_sd_y = is_sd_y,
     oo_sample_sd_y = os_sd_y,
     in_sample_rmse = ols_train_rmse$.estimate,
     oo_sample_rmse = ols_test_rmse$.estimate,
-    n_predictors = ncol(fit_ols$pre$mold$predictors)
+    n_predictors = ncol(fit_ols$pre$mold$predictors),
+    is_r2 = is_r2,
+    oos_r2 = oos_r2
+  ),
+  # quintiles
+  quintiles
   )
 )
 }
-```
-
-```{r Run OLS For Each Feature Set}
-## Create Recipes 
-FS_recipe_1 = recipe(as.formula(paste0("birth_weight","~",FS_1)), 
-         data = training) %>%
-         step_zv()
-
-FS_recipe_2 = recipe(as.formula(paste0("birth_weight","~",FS_2)), 
-         data = training) %>%
-  step_mutate(
-    across(c(
-    mom_race_hispanic_status,
-    mom_educ,
-    gestation_weeks
-    ), 
-    as.factor)
-  ) %>% 
-    step_dummy(all_nominal_predictors(),
-             one_hot = T) %>% 
-  step_zv(all_predictors())
-
-FS_recipe_3 = recipe(as.formula(paste0("birth_weight","~",FS_3)), 
-         data = training) %>%
-  step_mutate(
-    across(c(
-    mom_race_hispanic_status,
-    mom_educ,
-    gestation_weeks,
-    time,
-    ), 
-    as.factor)
-  ) %>% 
-    step_dummy(all_nominal_predictors(),
-                one_hot = T) %>% 
-  step_spline_b(mom_age,
-                deg_free = 6,
-                degree = 3,
-                keep_original_cols = T) %>%
-  step_zv(all_predictors())
-
-# Run OLS Function on feature sets 
-ols_fs_1 = ols_function("birth_weight",
-    FS_recipe = FS_recipe_1,
-    training = training,
-    testing = testing)
-
-ols_fs_2 = ols_function("birth_weight",
-    FS_recipe = FS_recipe_2,
-    training = training,
-    testing = testing) 
-
-ols_fs_3 = ols_function("birth_weight",
-    FS_recipe = FS_recipe_3,
-    training = training,
-    testing = testing) 
-
-### Save Metrics ###
-
-rbind(ols_fs_1,
-      ols_fs_2,
-      ols_fs_3)
-# why are these not chnaging? hmm 
 ```
 
 ```{r LASSO}
@@ -374,7 +341,7 @@ tidy_coefficients <- fit_rglr %>%
       length() %>% 
       as.numeric()
   
-# Calculate RMSE ---------------------------------
+# Calculate GOF ---------------------------------
 ## Combine Train-Test predictions and Outcomes into a DF 
 rglr_gof_train_df = data.frame(
   estimate = as.numeric(predict(fit_rglr,training)$.pred),
@@ -384,7 +351,7 @@ rglr_gof_test_df = data.frame(
   estimate = as.numeric(rglr_oos$.pred),
   truth = as.numeric(testing[[outcome]]))
 
-## Calculate RMSE ------------------------------
+## Calculate GOF ------------------------------
 rglr_train_rmse = rmse(
      data = rglr_gof_train_df,
      truth,
@@ -394,9 +361,33 @@ rglr_test_rmse = rmse(
      data = rglr_gof_test_df,
      truth,
      estimate)
+
+oos_r2 = rsq(data = rglr_gof_test_df,
+     truth = truth,
+     estimate = estimate)$.estimate %>% as.numeric()
+is_r2 = rsq(data = rglr_gof_train_df,
+     truth = truth,
+     estimate = estimate)$.estimate %>% as.numeric()
+
+# Quintiles ------------------------------
+quintiles = rglr_gof_test_df %>%
+ mutate(quintile = cut(
+      truth,
+      breaks = quantile(truth, probs = seq(0, 1, 0.20), na.rm = TRUE),
+      include.lowest = TRUE,
+      labels = paste0("P", 1:5)
+    )) %>% 
+  # summarise by metric 
+  group_by(quintile) %>% 
+  summarise(mu_lv = mean(truth),
+            mu_p = mean(estimate),
+            diff = (mu_lv - mu_p)
+            ) %>%
+  select(quintile,diff) %>% 
+  pivot_wider(names_from = "quintile", values_from = "diff")
 # Return Items ------------------------------
  return(
-   data.frame(
+   cbind(data.frame(
      Model = {{type}},
      in_sample_sd_y = is_sd_y,
      oo_sample_sd_y = os_sd_y,
@@ -404,15 +395,76 @@ rglr_test_rmse = rmse(
      oo_sample_rmse = rglr_test_rmse$.estimate,
      n_predictors = n_terms,
      mixture = best_mixture,
-     penalty = best_penalty
+     penalty = best_penalty,
+     is_r2 = is_r2,
+     oos_r2 = oos_r2
+   ),
+   quintiles
    )
  ) 
-
 }
 
 ```
 
-```{r Run Regularized Regressions}
+
+```{r Run OLS For Each Feature Set}
+## Create Recipes 
+FS_recipe_1 = recipe(as.formula(paste0("birth_weight","~",FS_1)), 
+         data = training) %>%
+         step_zv()
+
+FS_recipe_2 = recipe(as.formula(paste0("birth_weight","~",FS_2)), 
+         data = training) %>%
+  step_mutate(
+    across(c(
+    mom_race_hispanic_status,
+    mom_educ,
+    gestation_weeks
+    ), 
+    as.factor)
+  ) %>% 
+    step_dummy(all_nominal_predictors(),
+             one_hot = T) %>% 
+  step_zv(all_predictors())
+
+FS_recipe_3 = recipe(as.formula(paste0("birth_weight","~",FS_3)), 
+         data = training) %>%
+  step_mutate(
+    across(c(
+    mom_race_hispanic_status,
+    mom_educ,
+    gestation_weeks,
+    time,
+    ), 
+    as.factor)
+  ) %>% 
+    step_dummy(all_nominal_predictors(),
+                one_hot = T) %>% 
+  step_spline_b(mom_age,
+                deg_free = 6,
+                degree = 3,
+                keep_original_cols = T) %>%
+  step_zv(all_predictors())
+
+# Run OLS Function on feature sets 
+ols_fs_1 = ols_function("birth_weight",
+    FS_recipe = FS_recipe_1,
+    training = training,
+    testing = testing)
+
+ols_fs_2 = ols_function("birth_weight",
+    FS_recipe = FS_recipe_2,
+    training = training,
+    testing = testing) 
+
+ols_fs_3 = ols_function("birth_weight",
+    FS_recipe = FS_recipe_3,
+    training = training,
+    testing = testing) 
+```
+
+
+```{r Run Regularized Regressions, cache = T}
 set.seed(9999)
 # Run LASSO Models ------------------------------------- # 
 # 
@@ -515,25 +567,25 @@ ols_fs_3 %<>% mutate(mixture = NA,penalty = NA)
 
 # Look at Models
 
-rbind(ols_fs_1,
-      ols_fs_2,
-      ols_fs_3,
-      lasso_FS_1,
-      lasso_FS_2,
-      lasso_FS_3,
-      # Ridge
-      ridge_FS_1,
-      ridge_FS_2,
-      ridge_FS_3,
-      # Elastic
-      elastic_FS_1,
-      elastic_FS_2,
-      elastic_FS_3
+rbind(ols_fs_1 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,     oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      ols_fs_2 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,     oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      ols_fs_3 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,     oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      lasso_FS_1 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,   oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      lasso_FS_2 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,   oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      lasso_FS_3 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,   oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      ridge_FS_1 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,   oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      ridge_FS_2 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,   oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      ridge_FS_3 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse,   oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      elastic_FS_1 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse, oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      elastic_FS_2 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse, oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty) ,
+      elastic_FS_3 %>% select(Model, in_sample_sd_y, oo_sample_sd_y, is_rmse = in_sample_rmse, oos_rmse = oo_sample_rmse, n_predictors,alpha= mixture,lambda =penalty)
       ) %>% 
   datasummary_df(
     title = "Comparison of Predictive Performance Across Models and Feature Sets"
   )
 ```
+
+
 ### Cross-Validation 
 
 Within the tidymodels framework (the R analogue to scikit-learn), there are no defaults for cross-validation. Instead, I wrote my own function a la Mullinathan and Spiess, to run the models in an automated way. These functions allow the grid size for parameters to be searched over and the number of folds for cross-validation. For all models, I set the number of folds to 10, the grid size to 30 or 50 depending on whether the penalty is L1 or L2. The goodness of fit measure that I use is RMSE. 
@@ -542,13 +594,284 @@ Within the tidymodels framework (the R analogue to scikit-learn), there are no d
 
 I use three different covariate sets that layer controls in each model and change the functional form. The firs model includes linear forms of relevant predictors (e.g., mother's age and gestation). The second and third incorporate non-linear terms as well as expanded covariates. The majority of the improvement in predictive performance in richer models is obtained from gestation weeks. 
 
-Overall, the results indicate that the best model in terms of predictive performance is a LASSO regression that selects 30 predictors out of a candidate set of 39 and achieves an out-of-sample RMSE of $437$. Across ridge and elastic net, the RMSE is slightly worse but not by that much. In general, each of the second feature set models achieves similar results. The third feature set, which is the richest model, performs the worst across models. Though, the LASSO model shrinks the feature set from 542 to 94, which reduces the RMSE. Even with shrinkage, it still performs poorly. 
+Overall, the results, in Table 1, indicate that the best model in terms of predictive performance is a LASSO regression that selects 30 predictors out of a candidate set of 39 and achieves an out-of-sample RMSE of $437$. Across ridge and elastic net, the RMSE is slightly worse but not by that much. In general, each of the second feature set models achieves similar results. The third feature set, which is the richest model, performs the worst across models. Though, the LASSO model shrinks the feature set from 542 to 94, which reduces the RMSE. Even with shrinkage, it still performs poorly. 
 
 # Question 2
 
-```{r}
+The second table describes the results of Replication and Kitchen Sink Regressions for OLS, LASSO, and Elastic Net. Across models, the replication and kitchen sink regressions do about the same. The best performing model is the Elastic net, but it is only by a small margin (e.g. 44 v 43 R2). By House Price Quintile (P1-P5) each of the kitchen sink models achieve large performance improvements in the 3rd quintile for all models. 
+
+```{r House Price Data Cleaning, echo = F, results='hide'}
+
+# Data Cleaning # 
+# Adapted from Mullinathan and Spiess #
+
+ahs[, sapply(ahs, is.factor)] <- lapply(ahs[, sapply(ahs, is.factor)], as.factor)
+
+# Make some factors factors, numeric numeric
+ahs$CELLAR <-  as.factor(ahs$CELLAR)
+ahs$FPLWK <-   as.factor(ahs$FPLWK)
+ahs$TYPE <-    as.factor(ahs$TYPE)
+ahs$NUMTLT <-  as.numeric(as.character(ahs$NUMTLT))
+ahs$NUMCOLD <- as.numeric(as.character(ahs$NUMCOLD))
+ahs$BUSPER <-  as.numeric(as.character(ahs$BUSPER))
+ahs$NUMDRY <-  as.numeric(as.character(ahs$NUMDRY))
+ahs$NUMSEW <-  as.numeric(as.character(ahs$NUMSEW))
+ahs$VALUE <-   as.numeric(ahs$VALUE)
+
+# Delete rows with zero/missing value, and get the log value
+ahs <- ahs[ahs$VALUE > 0,]
+
+ahs$LOGVALUE <- log(ahs$VALUE)
+
+# Choose variables of interest
+allvars <- names(ahs)
+charvar <- intersect(allvars,c("ACCESS", "ACCESSB", "AGERES", "AIR", "AIRSYS", "ANYCAR", "ANYPNT", "ANYRUG", "APTFL", "ASSTSERV", "ATBSUN", "BATHS", "BDCARP", "BEDRMS", "BEDX", "BUILT", "BURNER", "BUSIN", "BUSPER", "CELLAR", "CLIMB", "CONDO", "COOK", "DENS", "DINING", "DIRAC", "DISH", "DISPL", "DRSHOP", "DRY", "DSTEAM", "DSTOVE", "EAIRC", "EBAR", "ECNTAIR", "EDISHWR", "EDRYER", "EFRIDGE", "EHEATUT", "ELEV", "ENOEAPP", "EOTEAPP", "ETRSHCP", "EWASHR", "EXCLUS", "FAMRM", "FLOODPLN", "FLOORS", "FLOT", "FPINS", "FPLWK", "FRPL", "FRPLI", "FRSTOC", "GARAGE", "HALB", "HALFB", "HOTPIP", "INCP", "KEXCLU", "KITCH", "KITCHEN", "LAT70S", "LAUNDY", "LIVING", "LOT", "LVCARP", "MOBILTYP", "MOPERM", "MOSALL", "MOSAPR", "MOSAUG", "MOSDEC", "MOSFEB", "MOSJAN", "MOSJUL", "MOSJUN", "MOSMAR", "MOSMAY", "MOSNOV", "MOSOCT", "MOSSEP", "NEWC", "NOOTHRM", "NUMAIR", "NUNIT2", "NUNITS", "OARSYS", "OBEDRM", "ODIN", "ODIRAC", "OKITCH", "OLIVIN", "OOTHRM", "OTBUP", "OTHFN", "OTHLQ", "OTHLQ1", "OTHLQ2", "OTHRUN", "OVEN", "OWNHERE", "OWNLOT", "PERSERV", "PHONE", "PLUGS", "PORCH", "PREOCC", "PUBSEW", "RECRM", "REFR", "ROOMS", "ROOMSA", "ROOMSB", "SEWDIS", "SEWDISTP", "SEWDUS", "SHARAT", "SHARFR", "SINHV", "SINK", "SINVV", "SOTHV", "SRECV", "SRENTV", "SSELV", "STEAM", "STORG", "TELAV", "TELHH", "TENURE", "TIMSHR", "TRASH", "TUB", "TYPE", "UNITSF", "VACANC2", "VACANC2B", "VACANCY", "WASH", "WATER", "WATERD", "WELLDIS", "WELLDIS2", "WELDUS", "WELL", "WFPROP", "WHNGET", "WINTERELSP", "WINTERKESP", "WINTERNONE", "WINTEROVEN", "WINTERWOOD", "YRRND"))
+qualvar <- intersect(allvars,c("BADSTEP", "BDSTPQ", "BLDMNT", "BLEAK", "BSINK", "CRACKS", "DFIRE", "DISAS", "DORREP", "EBOARD", "EBROKE", "ECRUMB", "EGOOD", "EHOLER", "ELEVWK", "EMISSR", "EMISSW", "EROACH", "ESAGR", "ESLOPW", "EVROD", "EXPOSE", "FREEZE", "GRDMNT", "HOLES", "HOWH", "IFBLOW", "IFCOLD", "IFDRY", "IFSEW", "IFTLT", "ILEAK", "IMAINT", "LEAK", "LTSOK", "LTSOK1", "LTSOK2", "M12ROACH", "M12ROD", "M3ROD", "MAJR1", "MAJR2", "MAJR3", "MICE", "MINR1", "MINR2", "MINR3", "NLEAK1", "NLEAK2", "NOTSUR", "NOWIRE", "NUMBLOW", "NUMCOLD", "NUMDRY", "NUMSEW", "NUMTLT", "OMAINT", "OTHCLD", "OTLEAK", "PILEAK", "PLEAK", "PLUMB", "RAILOK", "RAILOK1", "RAILOK2", "RATFREQ", "RATS", "RLEAK", "ROACHFRQ", "TALWIR", "TASB", "TOILET", "TRADON", "TREP", "TWATER", "WATERS", "WHYCD1", "WHYCD2", "WHYCD3", "WHYCD4", "WHYCD5", "WLEAK", "WTRHRL", "ZADEQ"))
+geovar <- c("REGION"
+            #"METRO","METRO3","NATLFLAG"
+            )
+keepvars <- unique(c("LOGVALUE",geovar,charvar,qualvar))
+
+
+# Limit to owner-occupied units with non-missing value and square-footage from metropolitan sample
+ahs = 
+  ahs[#ahs$TENURE == 1,
+          ahs$VACANCY == -6,
+           # & ahs$NATLFLAG == 2, remove bc not using metro sample
+                  keepvars]
+
+
+# Collapse very rare factor levels by hand so that don't have to delete full variable
+ahs$SEWDIS[as.numeric(as.character(ahs$SEWDIS)) > 0] <- 1
+ahs$WATER[as.numeric(as.character(ahs$WATER)) == 6] <- 7
+ahs$ELEV[as.numeric(as.character(ahs$ELEV)) == 3] <- -6
+ahs$ELEVWK[as.numeric(as.character(ahs$ELEVWK)) == 2] <- -6
+
+# Take samples
+set.seed(20170313)
+
+ahs$holdout <- as.logical(1:nrow(ahs) %in% sample(nrow(ahs), nrow(ahs) - 10000))
+
+# Create folds for lasso barcode plot
+ahs$lassofolds <- as.factor(ceiling(10 * sample(nrow(ahs)) / nrow(ahs)))
+
+## fix ## 
+# Introduce missingness dummies
+# Fix NA values 
+
+replace_na_numeric <- function(df, na_value = -1) {
+  df %>%
+    mutate(across(where(is.numeric), ~ replace_na(., na_value)))
+}
+
+ahs = replace_na_numeric(ahs,na_value = -1)
+
+#ahs$holdout = as.logica(ahs$holdout)
+
+withmiss <- c()
+for (contvar in names(ahs)[(!sapply(ahs, is.factor)) & sapply(ahs, is.numeric)]) {
+  if (sum(ahs[[contvar]] < 0, na.rm = TRUE) > 0) {
+    
+    # make MISS indicator
+    ahs[[paste0(contvar, "MISS")]] <- factor(pmin(ahs[[contvar]], 0))
+    
+    # replace negatives with mean of positive non-holdout values
+     ahs[[contvar]][ahs[[contvar]] < 0] <- mean(ahs[[contvar]][!ahs$holdout & ahs[[contvar]] > 0],
+      na.rm = TRUE)
+    withmiss <- c(withmiss, contvar)
+  }
+}
+
+# Collapse missingness that does not have enough variation
+for(varname in names(ahs)[sapply(ahs, is.factor)]) {
+  thiscol <- as.numeric(as.character(ahs[,varname]))
+  if(min(table(thiscol[thiscol < 0]),na.rm =T) < 30) {
+    ahs[,varname] <- as.numeric(as.character(ahs[,varname]))
+    ahs[thiscol < 0,varname] <- -1
+    ahs[,varname] <- as.factor(ahs[,varname])
+  }
+}
+
+# Delete variables that are constant on full training set
+for(varname in setdiff(names(ahs), "holdout")) {
+  if(length(unique(ahs[!ahs$holdout, varname])) == 1) {
+    ahs <- ahs[, !(names(ahs) %in% paste0(varname, c("", "IMPUTED")))]
+  #  print(paste0("Deleted ",varname))
+  }}
+
+# Delete variables that have new levels on holdout
+for(varname in names(ahs)[sapply(ahs, is.factor)]) {
+  if((! varname %in% c("holdout","lassofolds")) & length(setdiff(unique(ahs[ahs$holdout, varname]),
+                                                                 unique(ahs[!ahs$holdout, varname]))) > 0) {
+    print(paste0(varname," misses ",setdiff(unique(ahs[ahs$holdout, varname]),
+                                            unique(ahs[!ahs$holdout, varname]))))
+    ahs <- ahs[, !(names(ahs) == varname)]
+  }
+}
+
+# Flatten factors
+ahs <- droplevels(ahs)
+
+downtoearth <- function(RHS,survivors) {
+  keepthem <- intersect(c(RHS,paste0(RHS,"MISS")),survivors)
+  return(keepthem)
+}
+vars <- downtoearth(c(charvar,qualvar,geovar),names(ahs))
+
+getformula <- function(varlist,LHS="LOGVALUE") {
+  return(paste(LHS, paste(varlist,collapse=" + "), sep = " ~ "))
+}
+
+# Fix character Factor 
+miss_factor_recode = function(df) {
+  factor_cols <- names(df)[sapply(df, is.factor)]
+  
+  for (col in factor_cols) {
+    # Convert factor to character first to preserve unusual levels
+    levels_vec <- as.character(df[[col]])
+    
+    # Replace NA with a string so dummy creation works
+    levels_vec[is.na(levels_vec)] <- "NA"
+    
+    # Create two dummy variables
+    df[[paste0(col, "_dum1")]] <- as.integer(levels_vec %in% unique(levels_vec)[1])
+    df[[paste0(col, "_dum2")]] <- as.integer(levels_vec %in% unique(levels_vec)[2])
+    
+    # Optionally remove original factor
+    # df[[col]] <- NULL
+  }
+  
+  return(df)
+}
+
+ahs = miss_factor_recode(ahs) %>% select(!is.factor, -EXCLUS)
+
+ahs %<>% na.omit %>% droplevels()
 
 ```
+
+```{r}
+# House Price Data Processing
+ahs_training = ahs[ahs$holdout == FALSE,]
+ahs_testing =  ahs[ahs$holdout == TRUE,]
+# OLS -------------------- -------------------------------------
+## Replication Covariates -------------------------------------
+# Create feature set
+
+ahs_recipe_1 = recipe(LOGVALUE~.,
+                data = ahs_training) %>%
+  step_mutate(across(c(
+    where(is.character)
+    ), 
+    as.factor)) %>%
+  step_dummy(all_nominal_predictors(),one_hot = T) %>% 
+         step_zv(all_predictors())
+
+# Run OLS 
+ahs_ols_fs_1 = ols_function("LOGVALUE",
+    FS_recipe = ahs_recipe_1,
+    training = ahs_training,
+    testing =  ahs_testing)
+## Updated Covariates -------------------------------------
+ahs_recipe_2 = recipe(LOGVALUE~.,
+                data = ahs_training) %>%
+  step_discretize(c(BUILT,WHNGET,ROOMS,LOT), num_breaks = 10) %>%
+  step_mutate(across(c(
+    where(is.character),
+    REGION,
+    BEDRMS,
+    FLOORS,
+    DRSHOP,
+    GARAGE,
+    AIR
+    ), 
+    as.factor)) %>%
+  step_dummy(all_nominal_predictors(),one_hot = T) %>% 
+         step_zv(all_predictors())
+
+ahs_ols_fs_2 = ols_function("LOGVALUE",
+    FS_recipe = ahs_recipe_2,
+    training = ahs_training,
+    testing =  ahs_testing)
+# LASSO -------------------- -------------------------------------
+set.seed(999)
+ahs_lasso_fs_1 = regularize_function(outcome = "LOGVALUE",
+                        training = ahs_training,
+                        testing =  ahs_testing,
+                        FS_recipe = ahs_recipe_1,
+                        type = "LASSO",
+                        n_folds = 5,
+                        grid_max = 30
+                        )
+ahs_lasso_fs_2 = regularize_function(outcome = "LOGVALUE",
+                        training = ahs_training,
+                        testing =  ahs_testing,
+                        FS_recipe = ahs_recipe_2,
+                        type = "LASSO",
+                        n_folds = 10,
+                        grid_max = 30
+                        )
+
+# Elastic Net -------------------- -------------------------------------
+ahs_en_fs_1 = regularize_function(outcome = "LOGVALUE",
+                        training = ahs_training,
+                        testing =  ahs_testing,
+                        FS_recipe = ahs_recipe_1,
+                        type = "Elastic",
+                        n_folds = 10,
+                        grid_max = 30
+                        )
+ahs_en_fs_2 = regularize_function(outcome = "LOGVALUE",
+                        training = ahs_training,
+                        testing =  ahs_testing,
+                        FS_recipe = ahs_recipe_2,
+                        type = "Elastic",
+                        n_folds = 10,
+                        grid_max = 30
+                        )
+```
+
+```{r}
+# Assemble table 
+ols_1 = ahs_ols_fs_1 %>% 
+  mutate(Features = "Rep") %>%
+  select(Model,Features,in_sample_rmse,oo_sample_rmse,is_r2,oos_r2,starts_with("P",ignore.case = F))
+ols_2 = ahs_ols_fs_2 %>% 
+  mutate(Features = "KS") %>%
+  select(Model,Features,in_sample_rmse,oo_sample_rmse,is_r2,oos_r2,starts_with("P",ignore.case = F))
+lasso_1 = ahs_lasso_fs_1 %>% 
+  mutate(Features = "Rep") %>%
+  select(Model,Features,in_sample_rmse,oo_sample_rmse,is_r2,oos_r2,starts_with("P",ignore.case = F))
+lasso_2 = ahs_lasso_fs_2 %>% 
+  mutate(Features = "KS") %>%
+  select(Model,Features,in_sample_rmse,oo_sample_rmse,is_r2,oos_r2,starts_with("P",ignore.case = F))
+elastic_1 = ahs_en_fs_1 %>% 
+  mutate(Features = "Rep") %>%
+  select(Model,Features,in_sample_rmse,oo_sample_rmse,is_r2,oos_r2,starts_with("P",ignore.case = F))
+elastic_2 = ahs_en_fs_2 %>% 
+  mutate(Features = "KS") %>%
+  select(Model,Features,in_sample_rmse,oo_sample_rmse,is_r2,oos_r2,starts_with("P",ignore.case = F))
+
+rbind(ols_1,
+      ols_2,
+      lasso_1,
+      lasso_2,
+      elastic_1, 
+      elastic_2) %>% 
+  mutate(
+    # Calculate percent improvement
+    P1 = ((ols_1$P1 - P1) / ols_1$P1) * 100,
+    P2 = ((ols_1$P2 - P2) / ols_1$P2) * 100,
+    P3 = ((ols_1$P3 - P3) / ols_1$P3) * 100,
+    P4 = ((ols_1$P4 - P4) / ols_1$P4) * 100,
+    P5 = ((ols_1$P5 - P5) / ols_1$P5) * 100,
+  ) %>% 
+  datasummary_df(
+    align = "llccccccccc",
+    title = "Replication of Mullinathan Spiess Table 1"
+  )
+```
+
 
 # Question 3
 
@@ -630,19 +953,19 @@ ggplot() +
               linetype = "dashed") + 
   labs(x = "Pr(BW = Low)",
        y = "Prop(Low)",
-       title = "Calibration Plot")
+       title = "Calibration Plot (Small)")
 ```
+
+The calinration plot displays the predicted probabilites of low-birthweight on the X axis and the share of observations classified as low-birthweight on the Y axis for each bin of predicted probabilites based on a local polynomial regression using a bandwidth of .3 and a uniform kernel. What we can broadly see is that at higher values of predicted low-birthweight, the model overpredicts the number of low-birthweight babies, while the true rates of low birthweight are lower than the 45 degree line. In the middle of the distribution of predicted probabilites, around .25-.6, the model tends to underpredict birthweight.
 
 ## Confusion Matrix 
 
 ```{r}
 augment(fit_probit, new_data = testing) %>% 
-  conf_mat(truth = lbw, estimate = .pred_class) 
-
- augment(fit_probit, new_data = testing) %>% 
-   group_by(.pred_class,lbw) %>% 
-   summarise(n())
+  conf_mat(estimate = .pred_class,truth = lbw,)
 ```
+
+For the confusion matrix, 67 true positives, 11420 true negatives, 51 false negatives, and 20 false positives. 
 
 ```{r}
 ## Accuracy
@@ -669,6 +992,8 @@ precision(truth = lbw, estimate = .pred_class)
   labs(title = "ROC Curve")
 
 ```
+There is not a direct ROC curve interpretation. 
+
 ## AUC
 
 ```{r}
@@ -686,6 +1011,7 @@ rbind(probit_oos_accuracy,
   data.frame() %>% 
   datasummary_df(title = "Probit GOF (Feature set 1)")
 ```
+The Probit GOF (Set 1) describes the results of various goodness of fit statistics. The first is the accuracy, which measures the share of correct classifications out of total classifications. The number correct is .99. Second is precision, which refers to the proportion of the models positive classifications that are actually positive, which has. value of .77.  The sensitivity is the true positive rate, which is the probability of a positive result given the case being positive, which is .57. Finally, I report the AUC which is .99. Relative to a model classifying at random, the model does quite well. 
 
 ## c. 
 
@@ -734,7 +1060,7 @@ final_fit <- finalize_workflow(final_wf, best) %>%
   fit(training_g)
 
 ## Obtain Predictions -----------------------------
-probit_oos_lg = predict(fit_probit_lg,testing,type ="prob")
+probit_oos_lg = predict(final_fit,testing,type ="prob")
 ## Calibration plot -----------------------------
 
 testing$y_hat_lbw = probit_oos_lg$.pred_low
@@ -802,7 +1128,9 @@ precision(truth = lbw, estimate = .pred_class)
 
 ```
 
+For the confusion matrix, 64 true positives, 11397 true negatives, 54 false negatives, and 23 false positives. 
 
+The Probit GOF (Set 3) table describes the results of various goodness of fit statistics. The first is the accuracy, which measures the share of correct classifications out of total classifications. The number correct is .99. Second is precision, which refers to the proportion of the models positive classifications that are actually positive, which has. value of .74.  The sensitivity is the true positive rate, which is the probability of a positive result given the case being positive, which is .54. Finally, I report the AUC which is .98. Relative to the small feature set, this model does a little bit worse at the true positive rate (sensitivity) and the AUC. But it is not dramatic.
 
 
 
