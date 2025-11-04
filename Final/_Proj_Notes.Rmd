@@ -1,0 +1,20 @@
+---
+title: "Project Notes"
+author: "Thelonious Goerz"
+date: "2025-11-03"
+output: html_document
+---
+
+**Current Project Idea**
+
+-   use HRS
+
+-   leverage subjective probs of health to estimate Mort
+
+-   see how well these predict mort rather than other soc dem covariates
+
+-   mortaltiy past 75 - 85 for Binary outcome
+
+    -   past studies have predicted mortality (overall and age at death) but less predictive work has examined the superlative or threshold models (might be more predictive
+
+-   

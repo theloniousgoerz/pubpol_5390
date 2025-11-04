@@ -1,0 +1,186 @@
+---
+title: "Lecture 17"
+author: "Thelonious Goerz"
+date: "2025-11-04"
+output: html_document
+---
+
+# Project Proposal
+
+-   Slide deck and write up are due on the 17th
+
+-   Sufficiently address each point
+
+------------------------------------------------------------------------
+
+# Boosting
+
+-   Build a Tree
+
+-   Get Residuals
+
+-   Build a second tree and predict the residuals
+
+-   new prediction: sum of the trees (tree 1 + tree 2)
+
+-   Repeat
+
+-   Each tree tries to fix the mistakes of the last version of the model
+
+-   A series of trees 1-B
+
+-   For each step: $\hat b^b (x)$ function to predict residuals from tree b as a function of X
+
+-   often each tree is simple (stump = 1 split)
+
+-   Prediction at stage B = $\hat f(x) = \sum_b^B \hat f^b (X)$
+
+-   Boosting shrinkage
+
+    -   idea - don't update the model fully, just take a step of size $\lambda$ in the direction of the new tree.
+
+    -   Lambda is a shrinkage parameter but not the same as LASSO In this case we are shrinking the updates to the predictions.
+
+    -   Similar steps =\> maybe better than many-tree performance
+
+    -   Lambda tune $\hat f(x) = \sum_b^B \times \lambda \hat f^b (X)$
+
+-   
+
+```{r}
+
+library(tidymodels)
+library(here)
+library(readr)
+library(vip)
+library(tictoc)
+library(ranger)
+library(solitude)
+G = read_csv(here("Data","births_for_class_G.csv"))
+H= read_csv(here("Data","births_for_class_H.csv"))
+```
+
+```{r}
+d = rbind(G,H)
+```
+
+```{r}
+set.seed(109900)
+
+d = d %>% select(-gestation_weeks)
+t = initial_split(d, prop = 3/4)
+
+train = training(t)
+test = testing(t)
+
+tree_rec <- 
+  recipe(birth_weight ~., data = train) 
+
+tree_prep <- prep(tree_rec)
+juiced <- juice(tree_prep)
+
+```
+
+```{r Tuning}
+
+tune_spec <- rand_forest(
+  mtry = tune(),
+  trees = 100,
+  min_n = 3
+) %>%
+  set_mode("regression") %>%
+  set_engine("ranger",
+             importance = "impurity"
+             )
+
+tune_wf <- workflow() %>%
+  add_recipe(tree_rec) %>%
+  add_model(tune_spec)
+
+```
+
+```{r}
+tic()
+set.seed(234)
+trees_folds <- vfold_cv(train,v = 5)
+
+param_grid <- grid_regular(mtry(range = c(0, 10)), levels = 5)
+
+doParallel::registerDoParallel()
+
+tune_res <- tune_grid(
+  tune_wf,
+  resamples = trees_folds,
+  grid = param_grid
+)
+toc()
+
+
+collect_metrics(tune_res)
+```
+
+```{r}
+best_complexity <- select_best(tune_res, metric = "rmse")
+
+rand_forest_final <- finalize_workflow(tune_wf, best_complexity)
+
+rf_fit <- fit(rand_forest_final, data = train)
+
+train_gof = data.frame(
+truth = as.numeric(rf_fit$pre$mold$outcomes$birth_weight),
+     estimate = as.numeric(predict(rf_fit,train)$.pred))
+rmse(data = train_gof,
+     truth = truth, 
+     estimate = estimate)
+
+```
+
+```{r}
+sqrt(267062.1 )
+
+pred = predict(rf_fit, new_data = test)
+
+test$pred = pred$.pred
+
+rmse(data = test,
+     truth = birth_weight,
+     estimate = pred) 
+
+sd(train$birth_weight)
+
+# variable importance
+rf_fit %>%
+extract_fit_parsnip() %>%
+      vip(num_features = 10) 
+
+ ranger_obj <- rf_fit %>%
+      extract_fit_engine()
+ 
+ranger_obj <- rf_fit %>% extract_fit_engine()
+
+terminalNodesDepth(ranger_obj) %>%
+  summarise(max(depth),
+            mean(depth))
+
+```
+
+How to get tree depth trained? How to set tree depth
+
+```{r}
+# OLS 
+
+ols_model = 
+  linear_reg(mode = "regression",
+             engine =  "lm")
+
+ols_wf <- workflow() %>%
+  add_recipe(tree_rec) %>%
+  add_model(ols_model)
+
+ols_fit = fit(ols_wf,data = train)
+
+augment(ols_fit,new_data = test) %>% 
+  rmse(truth = birth_weight, 
+       estimate = .pred)
+```
+
