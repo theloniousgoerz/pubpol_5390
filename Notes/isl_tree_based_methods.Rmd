@@ -1,0 +1,84 @@
+---
+title: 'ISL Chapter: Tree Based Methods'
+author: "Thelonious Goerz"
+date: "2025-11-04"
+output: html_document
+---
+
+**Decision Trees**
+
+-   Stratify the parameter space on variables and get predictions (average Y in each split) or (rate of Y in each split)
+
+-   Goal: Pick regions in the parameter space that minimize the residual sum of squares (or RMSE or other GOF).
+
+\begin{equation}
+\sum\_j^J \sum_{i \in R_j} (y_i - \hat y_{R_j})^2
+\end{equation}
+
+-   Computationally expensive: take a top down greedy approach that is known as recursive binary splitting
+
+    -   top-down because it starts with 0 splits
+
+    -   greedy bc it recursively trys each split at each step to find the best split in the tree-building process
+
+-   For each split, rather than considering the entire predictor space, split on each of the prior splits. Then continue this til a stopping point.
+
+-   **An algorithm for trees can be found on:** pg. 309
+
+-   While regression is of the form
+
+    -   $f(x) = \beta_0 + \sum X_j \beta_j$
+
+    -   Trees are of the form
+
+        -   $f(x) = \sum c_m \times 1_{(X \in R_m)}$
+
+# Bagging, Random Forest, Boosting
+
+**Bagging**
+
+-   The goal of bagging is to reduce the variance of the statistical learning procedure (trees are high variance)
+
+-   Idea: take bootstrap resamples of training data and run the trees on each sample, then aggregate
+
+    -   $\hat f_{bag} (x) = \frac 1 B \sum_b^B \hat f^{*b} (x)$
+
+    -   This averaging will reduce the variance of the tree we have built
+
+-   Bagging also gives us a convenient estimate of test error (Out of Bag Estimate)
+
+    -   On average 2-3rds of the data are used in the bagging procedure, so the 1/3 serves as an out of bag tree.
+
+**Random Forest**
+
+-   Random Forests provide an improvement over bagging by de-correlating trees
+
+-   Bagging builds a forest based on bagging, that creates a number of trees. However, it uses all the variables available that may result in high correlations among trees (e.g., many of the same predictors get used)
+
+-   Random forest force each split to consider a subet (on average p-m/p of the splits will not consider the strong predictors (where m = subset of candidate predictors to split on and p = total predictors))
+
+**Boosting**
+
+-   Works the same way as bagging, but is done sequentially: each tree is grown using info from previously grown trees
+
+-   **Algorithm on page:** 322
+
+-   We fit a tree, then fit another regression tree to the residuals of the current model rather than Y
+
+    -   then we add this new tree to the fitted function to update the residuals
+
+    -   through this process we slowly improve the predictions of each new tree,
+
+    -   we then take the residuals of the new tree and add it back to th original tree and update the residuals, and so on
+
+    -   we can include a parameter lambda that slows this process down so that the residuals for the last tree are not
+
+-   boosting can overfit if B is too large
+
+    -   solution, use cross-validation to select B
+
+    -   Lambda controls the rate at which boosting learns
+
+    -   d is the number of splits in each tree – this controls how complex
+
+        -   often D = 1 (stumps) is good

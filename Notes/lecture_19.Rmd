@@ -1,0 +1,104 @@
+---
+title: "Lecture 19"
+author: "Thelonious Goerz"
+date: "2025-11-11"
+output: html_document
+---
+
+# Artificial Neural Network Review
+
+-   What a node does?
+
+    -   fires reponse to next layer
+
+-   activation functions
+
+    -   ANN node creates an index X with input values (Xs not necessarily features), weights (coefficients), bias (intercept)
+
+    -   Translates into output using activation function with output = f(index)
+
+-   each line in the neural network is a weight that has to be learned (dots preceding each node are biases)
+
+-   Which activation function to choose?
+
+    -   Many choices (sigmoid, tanh (hyperbolic tangent), rectified linear)
+
+    -   Tanh allows for negative and positive weights
+
+    -   Rectified linear is popular and easier to compute bc the derivative is either 0 or 1 depending on the value of the index `s`
+
+# Training an ANN
+
+-   key difference from what we are used to
+
+    -   the parameters are improved but not optimized
+
+        -   ols minimizes in-sample MSE
+
+    -   For ANN we do not do this – why?
+
+        -   too hard, highly nonlinear, more parameters than data, which results in many solutions, severe multicolinearity
+
+        -   the "space" of functions that ANN can cover is too rich, guaranteed to have serious overfitting problems
+
+-   What to do?
+
+    -   start with random weights and biases (e.g., relative to the standard normal distribution
+
+    -   take a step to oslighly improve them (prediction in sample)
+
+    -   then repeat these steps and stop at a pre-set number of epoch (step of training)
+
+        -   this is a tuning parameter with the analogue being depth or number of splits
+
+    -   If we have too few epochs, model is underfit; if too many epocks, model is over-fit and will make bad predictions (need to tune to fine a happy medium)
+
+-   How do we make weights and biases a little better
+
+    -   the key word is **backpropogation** (backward propagation of errors)
+
+        -   Forward pass
+
+            -   take the parameters -\> get predictions - \> get errors
+
+        -   use chain rule : given this error, what would we need to change about the components?: about the index, the weights and biases etc.? (equivalent to nudging inputs up and down)
+
+        -   For the about the input X - can pass back to prior nodes and repeat the question. For each parameter, we have a direction (amount) to change – take a small step in that direction
+
+-   We can backpropogate all observations or a subset of the observations
+
+    -   common to do a small batch (minibatches) do this a bunch - analagous to bootstrapping
+
+    -   when averaging - less noise
+
+    -   This can be good
+
+        -   allows more exploration of the space
+
+        -   less chance of getting a bad local minimum
+
+        -   minibatch size can be a tuning parameter
+
+        -   1 epoch: all the observations are processed over batchsize/N
+
+-   How to tune
+
+    -   We have to tune architecture and optimization
+
+        -   architecture: number of hidden layers, number of nodes in each layer, activation function
+
+        -   optimization: number of epochs of training
+
+        -   regularization penalty for weights? - can prevent overfitting. Could offset using a tn of epochs
+
+        -   size of minibatches
+
+    -   Training the model with cross-validation
+
+-   Scale of variables matter for the index (can mess with things)
+
+    -   it is beneficial to pre-standardize variables (subtract mean and divide by sd
+
+# Predicting Pop Counts
+
+-   LA county is huge (no county of similar size if in training and teseting (will always get wrong))

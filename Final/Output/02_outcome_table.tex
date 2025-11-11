@@ -1,0 +1,16 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={Outcome Descriptions},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]},
+column{1,2,3}={}{halign=l,},
+}                     %% tabularray inner close
+\toprule
+Outcome & Definition & Encoding \\ \midrule %% TinyTableHeader
+Longevity     & Death age in years                               & Numeric (continuous) \\
+Survive to 75 & Whether the individual lives past 75 year of age & Numeric (binary)     \\
+\bottomrule
+\end{talltblr}
+\end{table}

@@ -1,0 +1,122 @@
+---
+title: "Lecture 18"
+author: "Thelonious Goerz"
+date: "2025-11-06"
+output: html_document
+---
+
+# Tune Tree Depth In Ranger 
+
+2x node size? \~ tree depth? Can also specify max depth apparently?
+
+2\^depth = 1
+
+# Boosting tuning parameters 
+
+-   4 parameters
+
+    -   **B**: number of trees
+
+        -   it is possible to overfit with too many, when lambda is small, will use more trees (optimal B goes up)
+
+    -   Lambda - shrinkage
+
+    -   Size of trees: d splits, max depth,
+
+        -   determines the degree of interactions allowed among covariates/features
+
+    -   d=2 sufficient (ESL)
+
+-   optional: de-correlating choices
+
+    -   eg. sub-sampling the fraction of obs in each tree
+
+    -   ESL mentions c = .5
+
+-   Early stopping rule – set threshold for improvement between stages, if it declines enough then you can just end.
+
+-   How to optimize computation time
+
+    -   fix B as the main parameter
+
+    -   play around with shrinkage, tree size, and subsampling
+
+    -   then fix these and tune the B after optimals of the other parameters are chose
+
+        -   either using CV or OOB
+
+-   Boosting variation
+
+    -   classification – slightly more complex "adaboost"
+
+    -   Gradient boosging
+
+        -   from trees to group "gradient
+
+        -   Gradient = $d Loss (y_i, \hat y_i) / d y_i$
+
+        -   in regression with MSE, gradient is equal to the residual, in other prediction problems the loss function is different and not the same as the residuals
+
+        -   For other variants, grouping by different characteristics
+
+-   Lambda
+
+    -   controls the level of boost
+
+    -   shrinkage, slower and takes longer to find minima but better overall solution
+
+# Artificial Neural Networks 
+
+-   Not gonna do in class but can do one for the final
+
+-   Performs the best, most work to get it right
+
+-   Foundation of LLMs
+
+-   Packages: tensorflow, scikit learn. R: Keras, nnet,
+
+-   A neuron gets inputs from other neurons
+
+    -   might fire or not fire send output
+
+    -   depends on the inputs
+
+    -   many many neurons connected in rich ways, woven together into a network
+
+-   In ANN
+
+    -   neurons are nodes
+
+    -   flow of action across notes is one directional
+
+        -   inputs from upstream nodes
+
+        -   output goes downstream
+
+    -   group into distinct layers of nodes
+
+        -   determines what is up/downstream
+
+    -   first layer – the values of the features
+
+    -   last layer, prediction
+
+    -   in-between layers are -hidden layers
+
+    -   Dense network: all nodes in one layer - send signal to second layer
+
+    -   nodes send the same input to each receiving node
+
+        -   how each node uses the inputs it gets varies
+
+        -   how to weight these into a single index, similar to betas in a regression model, these are called weights. Also there is an intercept (known as node bias). Some nodes may be more or less active.
+
+        -   What to do with single index? Turn it into the output signal via activation function (aka link function)
+
+    -   Downstream nodes (e.g, layer 3 takes the Xs (impulse (e.g., index))
+
+        -   index undergoes a nonlinear transformation to create impulse for downstream node. Index generates one number output weight)
+
+    -   Can tune the width and depth of a network
+
+    -   No optimal solution like OLS – but random dist of beta that we then boost to refine
