@@ -183,4 +183,3 @@ augment(ols_fit,new_data = test) %>%
   rmse(truth = birth_weight, 
        estimate = .pred)
 ```
-

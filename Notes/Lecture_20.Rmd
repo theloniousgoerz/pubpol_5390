@@ -1,0 +1,12 @@
+---
+title: "Lecture 20"
+author: "Thelonious Goerz"
+date: "2025-11-13"
+output: html_document
+---
+
+Utility features may help us control how much different variables contribute to different types of estimates
+
+interaction terms -
+
+how well does the model fit the macro moments - fit state and county at the same time (state penalry term0

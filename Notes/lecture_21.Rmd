@@ -1,0 +1,50 @@
+---
+title: "Lecture 21"
+author: "Thelonious Goerz"
+date: "2025-11-18"
+output: html_document
+---
+
+# Challenges in using ML predictions
+
+-   The DGP changes (over time, across populations)
+
+    -   X can be different, population grows over time and then we can see Xs that are very extrapolated
+
+    -   Ys can change too - same Xs give different Ys
+
+    -   Backcasting: levels can be different but ranking can be ok
+
+    -   changing the cross-section pop – estimating on white moms and predicting on the total pop. May not be very good
+
+    -   Idea: might be an analogue to KOB decomposition
+
+-   The DGP changes (because of a change in policy)
+
+    -   Zillow - if $\hat{price}$ \> price, then flip houses — individual behavior changes, environment changed
+
+-   Mis-interpreting correlation as causal effects
+
+-   selective labels
+
+    -   Y_observed = f_observed
+
+    -   we do not know y_unobserved = f_unobserved
+
+    -   Related to Heckman selection literature
+
+    -   What to do?
+
+        -   Be aware of the problem - tell a story about how it can mess you up. Direction of the bias?
+
+        -   Can you get some data that does not have a problem?
+
+        -   if selection is only a function of observables, then not a big problem
+
+    -   Mistakes in levels of predictions v mistakes in rankings?
+
+-   omitted payoffs
+
+-   algorithmic bias
+
+------------------------------------------------------------------------

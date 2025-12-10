@@ -61,7 +61,7 @@ bibliography: references.bib
  
 ```
 
-\fontsize{12}{22}
+\fontsize{10}{10}
 
 \section{Background}
 
@@ -69,31 +69,35 @@ The extent to which we can predict mortality well matters for
 understanding population health. Recent work shows that individual-level
 mortality and longevity prediction is challenging, with uncertainty
 remaining high even with big microdata and rich individual-level
-covariates [@badolato2023; @breen2023]. Past work has employed
-subjective mortaltiy expectations to aid in interpreting the predictive
-performance of models, but overlooked their role as focal features.
-While individuals are not very good at predicting their own mortality
-and there are noted inequalities in accuracy by social group, whether
-subjective probabilities, however flawed, can be used in a prediction
-model as "utility features" [@kose] in combination with other strongly
-predictive variables (e.g., education, income, age, health) to achieve
-gains in predictive performance is currently unexplored. This project
-builds upon past efforts by testing the predictive performance of
-subjective life expectancy measures to (1) predict individual longevity
-and (2) predict survival past threshold ages (e.g., 75 years) relative
-to models without expectations.
+covariates [@badolato2023; @breen_demographic_2023]. Past work has
+employed subjective mortality expectations to aid in interpreting the
+predictive performance of models, but overlooked their role as focal
+features. While individuals are not very good at predicting their own
+mortality and there are noted inequalities in accuracy by social group,
+whether subjective probabilities, however flawed, can be used in a
+prediction model as "utility features" [@kose] in combination with other
+strongly predictive variables (e.g., education, income, age, health) to
+achieve gains in predictive performance is currently unexplored. This
+project builds upon past efforts by testing the predictive performance
+of subjective life expectancy measures to (1) predict individual
+longevity and (2) predict survival past threshold ages (e.g., 75 years)
+relative to models without expectations.
 
-\section{Policy-Relevance}
+\section{Policy Relevance}
 
 There are a variety of substantive and policy relevant reasons for
 trying to obtain accurate mortality predictions. First, predicting
 mortality from individual-level data is important for forecasting
 population longevity in the future, especially by social groups or
 categories that are not readily available from tabular data. Generating
-accurate predictions can help inform public health policy decisions
-allocating resouces to populations ar older ages based on predicted life
-expectancy with morbidites, disabilities, disease, loneliness, and other
-chronic conditions [@raymo2022]. Second,
+accurate predictions can inform public health policy decisions
+allocating resources to populations ar older ages based on predicted
+life expectancy with morbidities, disabilities, disease, loneliness, and
+other chronic conditions [@raymo2022]. Second, because research
+documents notable inequalities in the predictability of mortality for
+different social groups, the incorporation of subjective measures may
+improve predictive accuracy and thereby contribute to efforts to narrow
+mortality and longevity inequalities (e.g., by race).
 
 \section{Outcomes}
 
@@ -115,25 +119,21 @@ years). Table 2 describes some key features of the sample. I anticipate
 that the N for this sample will be approximately $170,000$ and the K
 will be between $82-100$. This is before any binning or data
 transformations.
+\input{./Output/01_descriptive_table.tex}
+
 
 \section{To Do}
 
 \begin{itemize}
-
 \item Tables: Table comparing in and out-of sample GOF measures and
 percent improvement (over OLS) measures for continuous and binary
 predictors across models (OLS, Probit (for binary), Ridge, LASSO, Random
 Forest, XGBoost, and potentially Artificial Neural Network) between
 models with and without utility feature-subjective probabilities
-
 \item Figures: Calibration plots, AUC (for binary), variable importance
 plot, comparison between models with and without
 utility-feature-subjective probabilities
-
 \end{itemize}
-
-\section{Summary Statistics}
-
-\input{./Output/01_descriptive_table.tex}
-
+\pagebreak
 \section{References}
+

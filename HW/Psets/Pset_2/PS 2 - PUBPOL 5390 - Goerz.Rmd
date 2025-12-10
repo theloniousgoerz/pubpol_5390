@@ -925,6 +925,7 @@ probit_oos = predict(fit_probit,testing,type ="prob")
 
 ```{r Calibration Plot}
 ## Calibration Plot  ------------------------------
+
 testing$y_hat_lbw = probit_oos$.pred_low
 testing %<>% mutate(y_hat_b = ifelse(y_hat_lbw == "low",1,0))
 # Get quantiles
@@ -962,7 +963,7 @@ The calinration plot displays the predicted probabilites of low-birthweight on t
 
 ```{r}
 augment(fit_probit, new_data = testing) %>% 
-  conf_mat(estimate = .pred_class,truth = lbw,)
+  conf_mat(estimate = .pred_class,truth = lbw)
 ```
 
 For the confusion matrix, 67 true positives, 11420 true negatives, 51 false negatives, and 20 false positives. 
@@ -971,6 +972,8 @@ For the confusion matrix, 67 true positives, 11420 true negatives, 51 false nega
 ## Accuracy
 probit_oos_accuracy = augment(fit_probit, new_data = testing) %>% 
 accuracy(truth = lbw, estimate = .pred_class)
+
+probit_oos_accuracy$.estimate
 # Calculate TPR or sensitivity 
 probit_oos_sensitivity = augment(fit_probit, new_data = testing) %>% 
 sens(truth = lbw, estimate = .pred_class)

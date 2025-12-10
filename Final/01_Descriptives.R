@@ -1,4 +1,3 @@
-# Final Project Tables 
 # Thelonious Goerz 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rm(list = ls())
@@ -26,6 +25,7 @@ setwd(here())
 
 # Create Summary table -------------------------------------------------
 data_c %>% 
+  filter(died ==1) %>%
   mutate(Black = ifelse(race == "Black",1,0),
          White = ifelse(race == "White",1,0),
          Other = ifelse(race == "Other",1,0),
@@ -43,10 +43,9 @@ data_c %>%
          `Wealth (Q5)` = ifelse(wealth_q == 5,1,0),
          tot_wealth = tot_wealth/1000,
          tot_nonHousWealth = tot_nonHousWealth/1000,
-         tot_stockVal = tot_stockVal/1000,
-         Died = died
+         tot_stockVal = tot_stockVal/1000
   ) %>%
-  select(Died,
+  select(
          Age = r_age,
          `Live to Age 75`= age75_plus,
          Black,
@@ -100,14 +99,17 @@ data.frame(
                "Numeric (binary)")
 ) %>% 
   datasummary_df(title = "Outcome Descriptions",
-                 output = "tinytable"
+                 output = "tinytable",
+                 placemment = "H"
                  ) %>% 
   save_tt(output = here("Final","Output","02_outcome_table.tex"),
           overwrite = T)
 
 
+# Data Cleaning  -------------------------------------------------
 
-
+# Save_data 
+write_csv(data_c, here("Data","project_data.csv"))
 
 
 

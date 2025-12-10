@@ -1,0 +1,22 @@
+---
+title: "Lecture 22"
+author: "Thelonious Goerz"
+date: "2025-11-20"
+output: html_document
+---
+
+**Human Decisions and Machine predictions**
+
+-   read later: 1,2,3,4,7
+
+-   Prediction model - gradient boosted decision trees
+
+    -   tuning parameters - depth of each tree, \# trees, weighting (learning rate)
+
+    -   5-fold CV
+
+-   comparison to OLS - pred vaues of algorithm on y-hat from OLS to see how they line up
+
+-   Q1: How do judge decisions relate to predicted crime risk
+
+-   Omitted payoffs – we are training for one outcome, but if the judges are making a decision based on a different outcomes, then we don't know what is going on

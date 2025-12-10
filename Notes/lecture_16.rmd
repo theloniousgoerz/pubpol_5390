@@ -5,7 +5,7 @@ date: "2025-10-30"
 output: html_document
 ---
 
-# Ensembles of trees 
+# Ensembles of trees
 
 -   How many trees
 
@@ -19,7 +19,7 @@ output: html_document
 
 -   Ensemble solves the noise
 
-# Bagging 
+# Bagging
 
 Regular BS - oos
 
@@ -88,7 +88,7 @@ so the gof on those observations gives a "free" CV estimate
     -   cross entropy
 
     -   node impurity - goal is a low value for each outcome
-    
+
 ```{r}
 library(tidymodels)
 library(here)
@@ -97,8 +97,6 @@ library(readr)
 d = read_csv(here("Data","births_for_class_G.csv"))
 ```
 
-    
-    
 ```{r}
 t = initial_split(d, prop = 3/4)
 
@@ -146,4 +144,3 @@ tune_res <- tune_grid(
 tune_res
 
 ```
-

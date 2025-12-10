@@ -5,13 +5,13 @@ date: "2025-11-06"
 output: html_document
 ---
 
-# Tune Tree Depth In Ranger 
+# Tune Tree Depth In Ranger
 
 2x node size? \~ tree depth? Can also specify max depth apparently?
 
 2\^depth = 1
 
-# Boosting tuning parameters 
+# Boosting tuning parameters
 
 -   4 parameters
 
@@ -65,7 +65,7 @@ output: html_document
 
     -   shrinkage, slower and takes longer to find minima but better overall solution
 
-# Artificial Neural Networks 
+# Artificial Neural Networks
 
 -   Not gonna do in class but can do one for the final
 
