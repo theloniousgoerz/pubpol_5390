@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  10 DEC 2025 14:43
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  11 DEC 2025 12:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1112,23 +1112,24 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 227.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 227.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 227.
-
 
 [1
 
 {/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
 al/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}]
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 235.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 235.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 235.
 
-[2{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/lo
-cal/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}]
 
-[3] (./Output/01_descriptive_table.tex
+[2]
+
+[3{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/lo
+cal/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}] (./Output/01_descrip
+tive_table.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -1142,70 +1143,74 @@ LaTeX Font Info:    Trying to load font information for T1+lmss on input line 4
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/t1lmss.fd
 File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ))
+
+[4]
+
+[5]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 3
-72.
+91.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 
-[4{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}]
-
-[5]
-
-[6]
+[6{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}]
 
 [7{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}{/usr/lo
 cal/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
-<Images/long_improvement.jpeg, id=94, 3613.5pt x 1204.5pt>
+
+[8]
+<Images/long_improvement.jpeg, id=98, 3613.5pt x 1204.5pt>
 File: Images/long_improvement.jpeg Graphic file (type jpg)
 <use Images/long_improvement.jpeg>
-Package pdftex.def Info: Images/long_improvement.jpeg  used on input line 520.
+Package pdftex.def Info: Images/long_improvement.jpeg  used on input line 539.
 (pdftex.def)             Requested size: 469.75502pt x 156.57211pt.
-<Images/long_improvement_rel.jpeg, id=95, 3613.5pt x 1204.5pt>
+<Images/long_improvement_rel.jpeg, id=99, 3613.5pt x 1505.625pt>
 File: Images/long_improvement_rel.jpeg Graphic file (type jpg)
 <use Images/long_improvement_rel.jpeg>
 Package pdftex.def Info: Images/long_improvement_rel.jpeg  used on input line 5
-25.
-(pdftex.def)             Requested size: 469.75502pt x 156.57211pt.
+44.
+(pdftex.def)             Requested size: 469.75502pt x 195.71515pt.
 
 
-[8 <./Images/long_improvement.jpeg>]
-<Images/survive_improvement.jpeg, id=103, 3613.5pt x 1204.5pt>
+[9 <./Images/long_improvement.jpeg>]
+<Images/survive_improvement.jpeg, id=107, 3613.5pt x 1204.5pt>
 File: Images/survive_improvement.jpeg Graphic file (type jpg)
 <use Images/survive_improvement.jpeg>
-Package pdftex.def Info: Images/survive_improvement.jpeg  used on input line 56
-1.
+Package pdftex.def Info: Images/survive_improvement.jpeg  used on input line 58
+0.
 (pdftex.def)             Requested size: 469.75502pt x 156.57211pt.
-<Images/survive_improvement_rel.jpeg, id=104, 3613.5pt x 1204.5pt>
+<Images/survive_improvement_rel.jpeg, id=108, 3613.5pt x 1204.5pt>
 File: Images/survive_improvement_rel.jpeg Graphic file (type jpg)
 <use Images/survive_improvement_rel.jpeg>
 Package pdftex.def Info: Images/survive_improvement_rel.jpeg  used on input lin
-e 566.
+e 585.
 (pdftex.def)             Requested size: 469.75502pt x 156.57211pt.
 
 
-[9 <./Images/long_improvement_rel.jpeg>]
+[10 <./Images/long_improvement_rel.jpeg>]
 
-[10 <./Images/survive_improvement.jpeg> <./Images/survive_improvement_rel.jpeg>
+[11 <./Images/survive_improvement.jpeg> <./Images/survive_improvement_rel.jpeg>
 ]
-<Images/vip_longevity.jpeg, id=116, 2107.875pt x 1505.625pt>
+<Images/vip_longevity.jpeg, id=120, 2107.875pt x 1505.625pt>
 File: Images/vip_longevity.jpeg Graphic file (type jpg)
 <use Images/vip_longevity.jpeg>
-Package pdftex.def Info: Images/vip_longevity.jpeg  used on input line 606.
+Package pdftex.def Info: Images/vip_longevity.jpeg  used on input line 625.
 (pdftex.def)             Requested size: 469.75502pt x 335.53465pt.
 
 
-[11 <./Images/vip_longevity.jpeg>]
-<Images/vip_survive.jpeg, id=123, 2107.875pt x 1505.625pt>
+[12 <./Images/vip_longevity.jpeg>]
+<Images/vip_survive.jpeg, id=127, 2107.875pt x 1505.625pt>
 File: Images/vip_survive.jpeg Graphic file (type jpg)
 <use Images/vip_survive.jpeg>
-Package pdftex.def Info: Images/vip_survive.jpeg  used on input line 625.
+Package pdftex.def Info: Images/vip_survive.jpeg  used on input line 644.
 (pdftex.def)             Requested size: 469.75502pt x 335.53465pt.
 
 
-[12 <./Images/vip_survive.jpeg>]
+[13 <./Images/vip_survive.jpeg>]
 
-[13] (./Output/03_performance_long.tex
+[14]
+
+[15] (./Output/03_performance_long.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -1224,7 +1229,7 @@ Overfull \hbox (12.89441pt too wide) in paragraph at lines 30--31
 
 )
 
-[14] (./Output/04_performance_long.tex
+[16] (./Output/04_performance_long.tex
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -1235,23 +1240,23 @@ Overfull \hbox (12.89441pt too wide) in paragraph at lines 30--31
 > Step: build the whole table.
 )
 
-[15]
+[17]
 
-[16
+[18
 
 
 
 
 ]
-Overfull \hbox (4.35263pt too wide) in paragraph at lines 657--677
+Overfull \hbox (4.35263pt too wide) in paragraph at lines 678--698
  [][] 
  []
 
 
 
-[17]
+[19]
 
-[18
+[20
 
 
 ] (./d02_writeup.aux)
@@ -1261,11 +1266,11 @@ L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 34801 strings out of 473190
- 723090 string characters out of 5715801
- 1226974 words of memory out of 5000000
- 57286 multiletter control sequences out of 15000+600000
- 638817 words of font info for 173 fonts, out of 8000000 for 9000
+ 34806 strings out of 473190
+ 723147 string characters out of 5715801
+ 1226932 words of memory out of 5000000
+ 57289 multiletter control sequences out of 15000+600000
+ 638712 words of font info for 172 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  98i,12n,101p,1008b,1355s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></usr/lo
@@ -1280,10 +1285,10 @@ live/2025/texmf-dist/fonts/type1/public/lm/lmr7.pfb></usr/local/texlive/2025/te
 xmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2025/texmf-dist/fon
 ts/type1/public/lm/lmri10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/p
 ublic/lm/lmsy10.pfb>
-Output written on d02_writeup.pdf (18 pages, 3177006 bytes).
+Output written on d02_writeup.pdf (20 pages, 3234686 bytes).
 PDF statistics:
- 299 PDF objects out of 1000 (max. 8388607)
- 241 compressed objects within 3 object streams
- 58 named destinations out of 1000 (max. 500000)
- 39075 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 314 PDF objects out of 1000 (max. 8388607)
+ 254 compressed objects within 3 object streams
+ 62 named destinations out of 1000 (max. 500000)
+ 39083 words of extra memory for PDF output out of 42996 (max. 10000000)
 

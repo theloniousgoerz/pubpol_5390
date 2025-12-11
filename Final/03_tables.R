@@ -191,7 +191,7 @@ long_rel = table_long %>%
              linetype = "dashed") + 
   annotate("text", 
            x = 4.5, 
-           y = -1, 
+           y = -2, 
            label = "Baseline OLS", 
            size = 4, color = "grey50") +
   labs(
@@ -455,3 +455,8 @@ ggsave(vip_boost,
        filename = here("Final","Images","vip_survive.jpeg"),
        width = 7, 
        height = 5)
+
+# Tune results 
+rf_tune_1 = read_rds(here("Final","Output","Ests","xgboost_2_tune_result.rds"))
+rf_tune_1
+

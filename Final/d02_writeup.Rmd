@@ -1,5 +1,5 @@
 ---
-title: "Self-Fullfilling Prophecy?: Predicting Longevity and Mortality Using Subjective Mortality Expectations in the HRS"
+title: "Self-Fullfilling Prophecy?: Do Subjective Mortality Expectations Matter For Predictive Mortality and Longevity"
 author: |
   | Thelonious Goerz
   | PUBPOL 5390
@@ -67,19 +67,19 @@ bibliography: references.bib
 \textbf{Abstract}
 
 Subjective expectations about health are thought to matter theoretically
-for mortality outcomes as they contain rich, but unobserved information
-about health status. While subjective expectations are correlated with
-mortality outcomes, whether they enrich the prediction of individual
-longevity remains less clear. This paper examines whether subjective
-expectations improve the predictability of longevity compared to
-sociodemographic and economic covariates using representative panel data
-and a variety of supervised learning models. Results indicate that
+for mortality outcomes because they contain rich, but unobserved
+information about health status. While subjective expectations are
+correlated with mortality outcomes, whether they enrich the prediction
+of individual longevity remains less clear. This paper examines whether
+subjective expectations improve the predictability of longevity compared
+to sociodemographic and economic covariates using representative panel
+data and a variety of supervised learning models. Results indicate that
 subjective expectations contribute little predictive power to models
 predicting death age, but improve predictions of survival past the age
 of 75. These results suggest that health surveys may be enriched by
 incorporating subjective mortality questions.
 
-\fontsize{10}{20}
+\doublespacing
 
 \section{Introduction}
 
@@ -88,14 +88,20 @@ rmdwc::rmdcountAddin()
 ```
 
 The extent to which we can predict mortality well matters for
-understanding population health. Recent work shows that individual-level
-mortality and longevity prediction is challenging, with uncertainty
-remaining high even with big microdata and rich individual-level
-covariates [@badolato2023; @breen_demographic_2023].
+understanding population health and policy decisions to meet the growth
+of the aging population in the U.S. Recent demographic work has thus
+aimed to address this problem by leveraging various demographic,
+forecasting, and prediction methods to study the predictability of
+longevity. However, recent work shows that individual-level mortality
+and longevity prediction is challenging, with uncertainty remaining
+high, even with big microdata and rich individual-level covariates
+[@breen_demographic_2023]. Moreover, even in cases where predictive
+performance is better (i.e., with survival curves), there are notable
+inequalities in predictive performance across group [@badolato2023].
 
 Despite empirical challenges, obtaining better predictions of
 individual-mortality and longevity are crucial for policy and scholarly
-reasons.First, predicting mortality from individual-level data is
+reasons. First, predicting mortality from individual-level data is
 important for forecasting population longevity in the future, especially
 by social groups or categories that are not readily available from
 tabular data. Generating accurate predictions can inform public health
@@ -115,26 +121,36 @@ mortality expectation questions in the HRS to aid in interpreting the
 predictive performance of models, but has overlooked their role as focal
 features. While current evidence suggests that individuals are not very
 good at predicting their own mortality and there are noted inequalities
-in accuracy by social group, whether subjective probabilities can be
+in performance by social group, whether subjective probabilities can be
 used in a prediction model as "utility features" [@kose] in combination
 with strongly predictive variables (e.g., education, income, age,
 health) to achieve gains in predictive performance is currently
-unexplored. The present study builds upon past efforts by testing the
-predictive performance of subjective mortality measures to (1) predict
-individual longevity (death age in years) and (2), as a secondary
-exercise, predict survival past threshold ages (e.g., 75 years) relative
-to models without expectations. To examine the predictability of
-mortality and longevity, I leverage HRS panel data and a variety of
-machine learning models to evaluate predictive performance relative to a
-baseline OLS regression model, predicting longevity and living to 75
-years as a function of subjective probabilities only. For each model, I
-contrast two feature sets: the first is a set of 82 cross-sectional and
-panel covariates, and the second feature set adds the subjective
-information to the 82 covariates.[^1]
+unexplored.
+
+The present study builds upon past efforts by testing the predictive
+performance of subjective mortality measures to (1) predict individual
+longevity (death age in years) and (2), as a secondary exercise, predict
+survival past threshold ages (e.g., 75 years) relative to models without
+expectations. To examine the predictability of mortality and longevity,
+I leverage HRS panel data and a variety of machine learning models to
+evaluate predictive performance relative to a baseline OLS regression
+model, predicting longevity and living to 75 years as a function of
+subjective probabilities only. For each model, I contrast two feature
+sets: the first is a set of 82 cross-sectional and panel covariates, and
+the second feature set adds the subjective information to the 82
+covariates.[^1]
 
 [^1]: Note, the 82 covariates refer to variables in their "unprocessed"
     form. That is, before creating factors, deciles, and nonlinear
     transformations of the variables.
+
+Results from random forest and XGBoost models combined with rich, panel
+data reveal that subjective measures do little to improve the
+predictability of longevity over other demographic, economic, and health
+covariates. However, subjective expectations do improve the
+predictability of surviving to age 75 compared to covariates.
+Comparisons in the specific predictive performance algorithms and
+variable importance are discussed.
 
 \section{Background}
 
@@ -148,7 +164,7 @@ to sustain economic productivity. Accordingly, questions related to how
 long we will live and what factors predict longer and shorter lifespans
 have become increasingly salient to policymakers, public health
 researchers, and demographers. An emergent literature in demography has
-reformulated these questions as a prediction problem that can tackled
+reformulated these questions as a prediction problems that can tackled
 with sophisticated machine learning methods that leverage advancements
 in computational capacity [@breen_demographic_2023; @badolato2023].
 
@@ -167,18 +183,17 @@ the rich covariate set and longitudinal nature of the data. However,
 they document stark inequalities in predictability by social group,
 particularly for race, gender, and education.
 
-A throughline of both papers is that mortality and longevity are
-unpredictable and there is much left unexplained. The first takeaway is
-that sociodemographic features provide weak predictive information,
-despite substantive and theoretical importance
-[@breen_demographic_2023]. A second takeaway is that researchers need to
-employ a more expansive set of theoretical predictors guided by theory
-and practical intuition. This paper attempts to make headway on
+A common takeaway of both papers is that mortality and longevity can be
+unpredictable and prediction quality varies. First, Sociodemographic
+features provide weak predictive information, despite substantive and
+theoretical importance [@breen_demographic_2023]. Second, researchers
+need to employ a more expansive set of theoretical predictors guided by
+theory and practical intuition. This paper attempts to make headway on
 improving our ability to predict mortality and longevity by considering
 the potential value of individuals subjective beliefs about their own
 mortality. While @breen_demographic_2023 and @badolato2023 discuss
 subjective mortality information, they do so in the context of
-benchmarking estimates but do not explicitlyy evaluate their predictive
+benchmarking estimates but do not explicitly evaluate their predictive
 performance.
 
 There are a variety of theoretical and empirical reasons why subjective
@@ -206,7 +221,9 @@ their predictive utility remains far from settled. For instance, one
 study previously used subjective measures in the HRS to calculate
 subjective, cohort-life-table estimates for U.S. men and women that were
 found to be predictive of revisions to Social Security life table
-estimates [@perozek2008].
+estimates [@perozek2008]. Indeed, evidence suggests that subjective
+expectations have the potential to contribute meaningful information,
+yet their contributions to predictive exercises remain unclear.
 
 \section{Data}
 
@@ -235,14 +252,14 @@ In addition to sociodemographic, economic, and health features, the HRS
 includes sets of subjective expectations about retirement planning,
 financial planning, and health. For mortality, subjective expectation
 questions ask respondents to rate the probability from 0-100 that they
-will live beyond a certain age (i.e., 75 years of age) [@perozek2008;
-@hurd2002]. Specifically, the question asks: "What do you think are the
-chances that you will live to be 75 or more?" Using the subjective
-indicators, I test whether they have predictive power for both longevity
-and survival past 75 years of age. To do so, I examine how well machine
-learning models leveraging all non-subjective features (Covariate set 1)
-perform compared to models that include subjective features (Covariate
-set 2).
+will live beyond a certain age (i.e., 75 and 80 years of age)
+[@perozek2008; @hurd2002]. Specifically, the question asks: "What do you
+think are the chances that you will live to be 75 or more?" Using the
+subjective indicators, I test whether they have predictive power for
+both longevity and survival past 75 years of age. To do so, I examine
+how well machine learning models leveraging all non-subjective features
+(Covariate set 1) perform compared to models that include subjective
+features (i.e., 75 and 80 year expectations) (Covariate set 2).
 
 There are a few important features of the subjective probabilities that
 are worth discussing. First, as noted by @perozek2008 and others, about
@@ -284,7 +301,7 @@ apply a series of feature engineering steps described below:
 After the pre-processing steps are applied to the data, the resulting
 dataset comprises 17.2 thousand observations and 647 predictors. To
 train the model, I randomly sample 80% of the data for the training
-sample and 20% for the hold-out sample.
+sample and 20% for the hold-out sample to evaluate predictions.
 
 \section{Methods}
 
@@ -327,7 +344,7 @@ sampled for each split and the minimum number of nodes. For the
 regression, I use RMSE as the loss function for death age prediction and
 the log-loss for survival classification. The chosen values of the
 tuning parameters for the main models predicting death age are reported
-in the \textbf{Appendix}.
+in Table 4 in the \textbf{Appendix}.
 
 \subsection{Assessing Goodness of Fit}
 
@@ -443,7 +460,7 @@ prediction for all quintiles. However, there are notable inequalities in
 the magnitude of these improvements. The majority of the increase in
 improvement is in the 3rd quintile, while the lowest improvement is
 consistently in the 2nd quintile. Overall, the random forest model with
-covariates and probabilies performs the best, but it is not
+covariates and probabilities performs the best, but it is not
 distinguishable from the covariate only random forest.
 
 Next, I describe the secondary prediction exercise that seeks to predict
@@ -494,7 +511,7 @@ according to the permutation importance metric. The permutation
 performance metric is calculated by measuring how much the model's
 performance drops in terms of goodness of fit with the exclusion of a
 specific feature. Thus, highly important features that contribute the
-most to goodness of fit recieve higher rankings. Unsurprisingly for
+most to goodness of fit receive higher rankings. Unsurprisingly for
 predicting longevity, age deciles at different waves and the cumulative
 number of waves that an individual is apart of over time contribute the
 most to predicting longevity.
@@ -536,8 +553,8 @@ measures into predictive models. Although subjective information
 provides weakly predictive information about longevity, it can improve
 the prediction of survival past thresholds.
 
+\pagebreak
 \section{Tables}
-
 \begin{landscape}
 \input{./Output/03_performance_long.tex}
 \end{landscape}
@@ -592,9 +609,15 @@ data.frame(
                   "0",
                   rep("-",6)),
   `M Try` =      c(rep("-",7),
-                   rep(NA,6)
+                  435,435,
+                  145,151,
+                  "-","-"
+                  
                    ),
-  `Min Nodes` =  c(rep("-",7),rep(NA,6)),
+  `Min Nodes` =  c(rep("-",7),
+  40,40,
+  30,30,
+  40,40),
   `N Trees` =    c(rep("-",7),
                    1,1,rep(100,4)),
   `Tree depth` = c(rep("-",11),8,8),
@@ -606,6 +629,7 @@ data.frame(
 ) %>% 
   datasummary_df(
     output = "kableExtra",
+    title = "Tuning Paremeters by Model (Longevity)",
     notes = "All parameters are tuned using cross-validation except learn rate, number of trees, and number of folds."
   ) %>% 
   column_spec(1:2,width = "1in") %>%
@@ -615,3 +639,5 @@ data.frame(
 
 \end{landscape}
 ````
+
+\section{References}
